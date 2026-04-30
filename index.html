@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PCDH 2.0 — HDU Revenue Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --navy: #0a1628; --navy-mid: #132040; --navy-light: #1e3058;
+  --teal: #00c9b1; --teal-dim: #007d6f; --gold: #f4c430;
+  --sky: #4db8ff; --red: #ff5252; --orange: #ff9f40;
+  --green: #4caf50; --yellow: #ffeb3b;
+  --white: #f0f4ff; --muted: #8899bb; --card: #111e36; --card-border: #1e3058;
+  --radius: 12px;
+}
+body { font-family:'DM Sans',sans-serif; background:var(--navy); color:var(--white); min-height:100vh; overflow-x:hidden; }
+body::before { content:''; position:fixed; inset:0; background-image:linear-gradient(rgba(0,201,177,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,201,177,.04) 1px,transparent 1px); background-size:60px 60px; pointer-events:none; z-index:0; }
+.glow-orb { position:fixed; border-radius:50%; filter:blur(120px); pointer-events:none; z-index:0; }
+.g1 { width:600px;height:600px;background:rgba(0,201,177,.08);top:-200px;right:-100px; }
+.g2 { width:500px;height:500px;background:rgba(77,184,255,.06);bottom:-100px;left:-100px; }
+.wrap { position:relative; z-index:1; max-width:1320px; margin:0 auto; padding:0 24px 100px; }
+
+/* HEADER */
+header { padding:40px 0 32px; border-bottom:1px solid rgba(0,201,177,.15); margin-bottom:36px; display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:16px; }
+.brand-badge { background:var(--teal); color:var(--navy); font-family:'DM Mono',monospace; font-size:10px; font-weight:500; letter-spacing:2px; text-transform:uppercase; padding:5px 10px; border-radius:4px; }
+h1 { font-family:'DM Serif Display',serif; font-size:clamp(26px,4vw,42px); line-height:1.1; letter-spacing:-.5px; }
+h1 em { color:var(--teal); font-style:italic; }
+.header-sub { color:var(--muted); font-size:14px; font-weight:300; max-width:340px; text-align:right; line-height:1.5; }
+
+/* SECTION LABELS */
+.slabel { font-family:'DM Mono',monospace; font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--teal); margin-bottom:16px; display:flex; align-items:center; gap:10px; }
+.slabel::after { content:''; flex:1; height:1px; background:rgba(0,201,177,.2); }
+
+/* CARDS & INPUTS */
+.card { background:var(--card); border:1px solid var(--card-border); border-radius:var(--radius); padding:20px; }
+.card:hover { border-color:rgba(0,201,177,.3); }
+.ilabel { font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); margin-bottom:8px; font-weight:500; }
+input[type=text].field, input[type=number].field {
+  background:transparent; border:none; border-bottom:1.5px solid rgba(0,201,177,.3);
+  color:var(--white); font-family:'DM Mono',monospace; font-size:16px;
+  width:100%; padding:6px 0; outline:none; transition:border-color .2s;
+}
+input[type=text].field:focus, input[type=number].field:focus { border-color:var(--teal); }
+.config-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:14px; margin-bottom:36px; }
+
+/* PAYER MIX BAR */
+.payer-section { margin-bottom:36px; }
+.payer-bar-wrap { position:relative; height:52px; border-radius:10px; overflow:visible; cursor:col-resize; user-select:none; margin-bottom:12px; }
+.payer-seg { position:absolute; top:0; height:100%; display:flex; align-items:center; justify-content:center; overflow:hidden; transition:none; }
+.payer-seg-label { font-size:11px; font-weight:600; color:rgba(0,0,0,.75); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:0 6px; pointer-events:none; }
+.payer-divider { position:absolute; top:-4px; width:10px; height:60px; background:var(--navy); cursor:col-resize; z-index:10; border-radius:3px; transform:translateX(-5px); opacity:.7; transition:opacity .15s; }
+.payer-divider:hover { opacity:1; }
+.payer-legend { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
+.payer-leg-item { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--muted); }
+.payer-leg-dot { width:10px; height:10px; border-radius:2px; flex-shrink:0; }
+.payer-totals { font-family:'DM Mono',monospace; font-size:12px; color:var(--muted); }
+.payer-totals span { color:var(--teal); }
+.btn-sm { background:transparent; border:1px solid var(--card-border); color:var(--muted); font-family:'DM Sans',sans-serif; font-size:12px; padding:6px 14px; border-radius:6px; cursor:pointer; transition:all .2s; }
+.btn-sm:hover { border-color:var(--teal); color:var(--teal); }
+
+/* EXPANDERS */
+.expander { background:var(--card); border:1px solid var(--card-border); border-radius:var(--radius); margin-bottom:14px; overflow:hidden; }
+.exp-header { padding:16px 20px; cursor:pointer; display:flex; align-items:center; justify-content:space-between; transition:background .2s; }
+.exp-header:hover { background:rgba(0,201,177,.05); }
+.exp-title { font-size:14px; font-weight:500; display:flex; align-items:center; gap:10px; }
+.exp-arrow { color:var(--teal); font-size:14px; transition:transform .3s; }
+.expander.open .exp-arrow { transform:rotate(180deg); }
+.exp-body { display:none; padding:0 20px 20px; border-top:1px solid var(--card-border); }
+.expander.open .exp-body { display:block; }
+.capability-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:8px; margin-top:14px; }
+.cap-pill { display:flex; align-items:center; gap:8px; padding:8px 12px; background:rgba(255,255,255,.04); border:1px solid var(--card-border); border-radius:8px; cursor:pointer; transition:all .2s; font-size:12px; }
+.cap-pill.active { border-color:rgba(0,201,177,.5); background:rgba(0,201,177,.08); color:var(--white); }
+.cap-pill.inactive { border-color:rgba(255,82,82,.3); background:rgba(255,82,82,.06); color:var(--muted); }
+.cap-check { width:14px; height:14px; border-radius:3px; border:1.5px solid var(--muted); display:flex; align-items:center; justify-content:center; font-size:9px; flex-shrink:0; }
+.cap-pill.active .cap-check { background:var(--teal); border-color:var(--teal); color:var(--navy); }
+.cap-pill.inactive .cap-check { background:transparent; border-color:var(--red); color:var(--red); }
+
+/* PRODUCT FILTERS */
+.product-filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px; }
+.filter-btn { background:transparent; border:1px solid var(--card-border); color:var(--muted); font-family:'DM Sans',sans-serif; font-size:12px; padding:6px 14px; border-radius:100px; cursor:pointer; transition:all .2s; }
+.filter-btn:hover { border-color:var(--teal); color:var(--teal); }
+.filter-btn.active { background:var(--teal); border-color:var(--teal); color:var(--navy); font-weight:600; }
+
+/* PRODUCT CARDS */
+.products-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:14px; margin-bottom:48px; }
+.product-card { background:var(--card); border:1px solid var(--card-border); border-radius:var(--radius); padding:18px 20px; position:relative; overflow:hidden; transition:border-color .2s, transform .2s; }
+.product-card::before { content:''; position:absolute; top:0; left:0; width:3px; height:100%; background:var(--card-border); transition:background .25s; }
+.product-card:hover { border-color:rgba(0,201,177,.35); transform:translateY(-1px); }
+.product-card.elected { border-color:rgba(0,201,177,.5); background:rgba(0,201,177,.04); }
+.product-card.elected::before { background:var(--teal); }
+.pc-header { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:10px; }
+.pc-name { font-size:14px; font-weight:500; line-height:1.3; flex:1; cursor:pointer; }
+.elect-btn { width:28px; height:28px; border-radius:50%; border:2px solid var(--card-border); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .2s; font-size:12px; flex-shrink:0; background:transparent; color:var(--muted); }
+.product-card.elected .elect-btn { background:var(--teal); border-color:var(--teal); color:var(--navy); }
+.pc-meta { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:10px; }
+.mtag { font-size:10px; font-family:'DM Mono',monospace; padding:3px 7px; border-radius:4px; background:rgba(255,255,255,.05); color:var(--muted); }
+.mtag.alerting { color:#f4c430;background:rgba(244,196,48,.1); }
+.mtag.infrastructure { color:var(--sky);background:rgba(77,184,255,.1); }
+.mtag.public { color:#7ec8a4;background:rgba(126,200,164,.1); }
+.mtag.quality { color:#d4a0ff;background:rgba(212,160,255,.1); }
+.mtag.payment { color:#ff9f40;background:rgba(255,159,64,.1); }
+.mtag.social { color:#ff80ab;background:rgba(255,128,171,.1); }
+.mtag.knowledge { color:#80cbc4;background:rgba(128,203,196,.1); }
+
+/* READINESS PILLS */
+.readiness-block { margin-bottom:10px; }
+.readiness-row { display:flex; gap:4px; flex-wrap:wrap; align-items:center; margin-bottom:4px; }
+.readiness-row-label { font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); margin-right:4px; font-family:'DM Mono',monospace; min-width:28px; }
+/* Data pills - rounded */
+.rp { font-size:9px; padding:2px 6px; border-radius:3px; font-family:'DM Mono',monospace; letter-spacing:.3px; }
+.rp-data { border-radius:10px; }
+/* Tech pills - square-ish */
+.rp-tech { border-radius:2px; }
+.rp-green { background:rgba(76,175,80,.15); color:#4caf50; border:1px solid rgba(76,175,80,.3); }
+.rp-yellow { background:rgba(255,235,59,.1); color:#ffeb3b; border:1px solid rgba(255,235,59,.2); }
+.rp-red { background:rgba(255,82,82,.15); color:#ff5252; border:1px solid rgba(255,82,82,.3); }
+.rp-na { background:rgba(255,255,255,.05); color:var(--muted); border:1px solid rgba(255,255,255,.08); }
+
+/* REVENUE DISPLAY */
+.pc-revenue { display:flex; align-items:baseline; gap:8px; margin-bottom:10px; }
+.rev-lbl { font-size:10px; color:var(--muted); }
+.rev-val { font-family:'DM Serif Display',serif; font-size:20px; color:var(--teal); }
+.rev-base-lbl { font-size:11px; color:var(--muted); }
+
+/* PRODUCT CONTROLS (shown when elected) */
+.pc-controls { display:none; border-top:1px solid rgba(255,255,255,.06); padding-top:14px; margin-top:6px; }
+.product-card.elected .pc-controls { display:block; }
+.ctrl-row { margin-bottom:12px; }
+.ctrl-label { font-size:10px; color:var(--muted); letter-spacing:1px; text-transform:uppercase; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center; }
+.ctrl-val { color:var(--teal); font-family:'DM Mono',monospace; }
+
+/* SLIDER WITH DEFAULT MARKER */
+.slider-wrap { position:relative; padding-bottom:16px; }
+.styled-range { -webkit-appearance:none; appearance:none; width:100%; height:4px; background:var(--navy-light); border-radius:2px; outline:none; }
+.styled-range::-webkit-slider-thumb { -webkit-appearance:none; width:16px; height:16px; border-radius:50%; background:var(--teal); cursor:pointer; box-shadow:0 0 6px rgba(0,201,177,.4); }
+.default-marker { position:absolute; bottom:0; width:2px; height:10px; background:var(--gold); border-radius:1px; transform:translateX(-50%); }
+.default-marker::after { content:'default'; position:absolute; bottom:-14px; left:50%; transform:translateX(-50%); font-size:8px; color:var(--gold); white-space:nowrap; font-family:'DM Mono',monospace; }
+
+.ctrl-inline { display:flex; gap:8px; align-items:center; }
+.ctrl-inline input[type=number] { background:var(--navy-light); border:1px solid var(--card-border); color:var(--white); font-family:'DM Mono',monospace; font-size:13px; padding:5px 8px; border-radius:6px; width:100px; outline:none; }
+.ctrl-inline input[type=number]:focus { border-color:var(--teal); }
+.ctrl-inline label { font-size:11px; color:var(--muted); }
+
+/* QUALITY SLIDER */
+.qual-slider { -webkit-appearance:none; appearance:none; width:100%; height:3px; background:var(--navy-light); border-radius:2px; outline:none; }
+.qual-slider::-webkit-slider-thumb { -webkit-appearance:none; width:14px; height:14px; border-radius:50%; background:var(--gold); cursor:pointer; }
+
+/* PRODUCT DESCRIPTION */
+.pc-desc { font-size:11px; color:var(--muted); line-height:1.5; margin-bottom:8px; font-style:italic; }
+.pc-link a { font-size:11px; color:var(--sky); text-decoration:none; }
+.pc-link a:hover { text-decoration:underline; }
+
+/* RESULTS PANEL */
+.results-sticky { position:sticky; bottom:20px; z-index:100; }
+.results-panel { background:var(--navy-mid); border:1px solid rgba(0,201,177,.3); border-radius:16px; padding:20px 28px; box-shadow:0 24px 80px rgba(0,0,0,.6),0 0 40px rgba(0,201,177,.08); display:grid; grid-template-columns:1fr auto; gap:20px; align-items:center; }
+.res-nums { display:flex; gap:32px; flex-wrap:wrap; }
+.res-item { display:flex; flex-direction:column; gap:3px; }
+.res-lbl { font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); font-family:'DM Mono',monospace; }
+.res-val { font-family:'DM Serif Display',serif; font-size:clamp(20px,2.5vw,30px); letter-spacing:-1px; }
+.res-val.teal { color:var(--teal); }
+.res-val.gold { color:var(--gold); }
+.res-actions { display:flex; gap:10px; flex-wrap:wrap; }
+.btn-reset { background:transparent; border:1px solid var(--card-border); color:var(--muted); font-family:'DM Sans',sans-serif; font-size:13px; padding:10px 18px; border-radius:8px; cursor:pointer; transition:all .2s; }
+.btn-reset:hover { border-color:var(--red); color:var(--red); }
+.btn-primary { background:var(--teal); border:none; color:var(--navy); font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; padding:10px 22px; border-radius:8px; cursor:pointer; transition:all .2s; }
+.btn-primary:hover { background:#00e5ce; box-shadow:0 0 20px rgba(0,201,177,.4); }
+
+
+/* BREAKDOWN TABLE */
+.breakdown-section { margin-top:40px; }
+.btable { width:100%; border-collapse:collapse; font-size:12px; }
+.btable th { text-align:left; padding:10px 12px; font-family:'DM Mono',monospace; font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); border-bottom:1px solid var(--card-border); }
+.btable td { padding:11px 12px; border-bottom:1px solid rgba(255,255,255,.04); vertical-align:middle; }
+.btable tr:hover td { background:rgba(255,255,255,.02); }
+.mono { font-family:'DM Mono',monospace; }
+.tc { color:var(--teal); } .gc { color:var(--gold); } .mc { color:var(--muted); font-size:11px; }
+.td-total td { border-top:2px solid rgba(0,201,177,.3); font-weight:600; }
+
+/* BAR CHART */
+.bar-chart { display:flex; flex-direction:column; gap:8px; }
+.bar-row { display:flex; align-items:center; gap:10px; }
+.bar-lbl { font-size:11px; color:var(--muted); min-width:190px; text-align:right; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.bar-track { flex:1; height:20px; background:var(--navy-light); border-radius:4px; overflow:hidden; }
+.bar-fill { height:100%; border-radius:4px; display:flex; align-items:center; justify-content:flex-end; padding-right:6px; transition:width .5s cubic-bezier(.34,1.56,.64,1); }
+.bar-amt { font-family:'DM Mono',monospace; font-size:10px; color:var(--navy); font-weight:600; }
+
+/* HEATMAP */
+.heatmap-wrap { overflow-x:auto; margin-top:10px; }
+.heatmap { border-collapse:collapse; min-width:600px; }
+.heatmap th { padding:6px 8px; font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); font-family:'DM Mono',monospace; text-align:center; white-space:nowrap; }
+.heatmap th.row-h { text-align:left; min-width:200px; }
+.heatmap td { padding:5px 6px; text-align:center; font-size:10px; border:1px solid rgba(255,255,255,.04); }
+.heatmap td.row-name { text-align:left; font-size:11px; color:var(--white); padding-left:10px; }
+.hm-0 { background:rgba(255,255,255,.03); color:var(--muted); }
+.hm-1 { background:rgba(255,235,59,.08); color:#ffeb3b; }
+.hm-2 { background:rgba(255,159,64,.12); color:#ff9f40; }
+.hm-3-avail { background:rgba(76,175,80,.12); color:#4caf50; }
+.hm-3-miss { background:rgba(255,82,82,.15); color:#ff5252; }
+
+/* MODAL */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:500; display:none; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
+.modal-overlay.open { display:flex; }
+.modal-box { background:var(--navy-mid); border:1px solid rgba(0,201,177,.3); border-radius:16px; padding:32px; max-width:480px; width:90%; box-shadow:0 32px 80px rgba(0,0,0,.7); }
+.modal-title { font-family:'DM Serif Display',serif; font-size:22px; margin-bottom:8px; }
+.modal-sub { color:var(--muted); font-size:13px; margin-bottom:24px; }
+.modal-input { width:100%; background:var(--navy-light); border:1px solid var(--card-border); color:var(--white); font-family:'DM Mono',monospace; font-size:18px; letter-spacing:4px; padding:12px 16px; border-radius:8px; outline:none; text-align:center; margin-bottom:16px; }
+.modal-input:focus { border-color:var(--teal); }
+.modal-err { color:var(--red); font-size:12px; text-align:center; min-height:18px; margin-bottom:12px; }
+.modal-actions { display:flex; gap:10px; justify-content:flex-end; }
+
+/* ADMIN PANEL */
+.admin-panel { background:var(--card); border:1px solid rgba(212,160,255,.2); border-radius:var(--radius); padding:24px; margin-top:40px; display:none; }
+.admin-panel.visible { display:block; }
+.admin-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px; margin-top:16px; }
+.admin-card { background:var(--navy-mid); border:1px solid var(--card-border); border-radius:10px; padding:16px; }
+.admin-card h4 { font-size:13px; margin-bottom:12px; color:#d4a0ff; }
+.admin-field { margin-bottom:10px; }
+.admin-field label { font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); display:block; margin-bottom:4px; }
+.admin-field input, .admin-field textarea { background:var(--navy-light); border:1px solid var(--card-border); color:var(--white); font-family:'DM Sans',sans-serif; font-size:12px; padding:7px 10px; border-radius:6px; width:100%; outline:none; }
+.admin-field input:focus, .admin-field textarea:focus { border-color:#d4a0ff; }
+.admin-field textarea { height:70px; resize:vertical; }
+
+/* LOG TABLE */
+.log-table { width:100%; border-collapse:collapse; font-size:11px; margin-top:12px; }
+.log-table th { font-family:'DM Mono',monospace; font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); padding:8px 10px; border-bottom:1px solid var(--card-border); text-align:left; }
+.log-table td { padding:8px 10px; border-bottom:1px solid rgba(255,255,255,.03); color:var(--muted); vertical-align:top; }
+.log-table td:first-child { font-family:'DM Mono',monospace; color:var(--teal); font-size:10px; white-space:nowrap; }
+
+@media(max-width:680px) {
+  .results-panel { grid-template-columns:1fr; }
+  .res-nums { gap:16px; }
+  .bar-lbl { min-width:120px; }
+}
+@keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+.product-card { animation:fadeUp .35s both; }
+</style>
+</head>
+<body>
+<div class="glow-orb g1"></div>
+<div class="glow-orb g2"></div>
+<div class="wrap">
+
+<!-- HEADER -->
+<header>
+  <div>
+    <div style="margin-bottom:8px"><span class="brand-badge" id="brandBadge" onclick="openAdminModal()" style="cursor:pointer;user-select:none;" title="">PCDH 2.0</span></div>
+    <h1>HDU Network<br><em>Revenue Calculator</em></h1>
+  </div>
+  <div class="header-sub">Configure your Health Data Utility parameters, elect products, and model your potential revenue from the national data network.</div>
+</header>
+
+<!-- SECTION 1: NETWORK PARAMETERS -->
+<div class="slabel">01 — Network Parameters</div>
+<div class="config-grid" style="margin-bottom:36px">
+  <div class="card" style="grid-column:span 2">
+    <div class="ilabel">Network Name</div>
+    <input type="text" id="networkName" class="field" value="MyHealth HDU" placeholder="Enter network name">
+  </div>
+  <div class="card">
+    <div class="ilabel">eMPI Population</div>
+    <input type="number" id="empiPop" class="field" value="4000000" min="100000" step="100000">
+  </div>
+  <div class="card">
+    <div class="ilabel">Service Area Population</div>
+    <input type="number" id="svcPop" class="field" value="4000000" min="100000" step="100000">
+  </div>
+  <div class="card">
+    <div class="ilabel">% Care Connected to HDU</div>
+    <div id="connLabel" style="font-family:'DM Mono',monospace;font-size:20px;color:var(--teal);margin-bottom:4px">80%</div>
+    <input type="range" id="pctConnected" class="styled-range" min="0.1" max="1" step="0.05" value="0.8">
+  </div>
+  <div class="card">
+    <div class="ilabel">Default SLA / Quality Score</div>
+    <div id="qualLabel" style="font-family:'DM Mono',monospace;font-size:20px;color:var(--gold);margin-bottom:4px">90%</div>
+    <input type="range" id="defaultQuality" class="styled-range" min="0.1" max="1" step="0.05" value="0.9">
+  </div>
+</div>
+
+<!-- SECTION 2: PAYER MIX -->
+<div class="slabel">02 — Payer Mix</div>
+<div class="payer-section card" style="padding:22px 24px;margin-bottom:36px">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <div class="ilabel" style="margin:0">Drag dividers to adjust mix &mdash; total must equal 100%</div>
+    <button class="btn-sm" onclick="resetPayerMix()">↺ Reset to National Averages</button>
+  </div>
+  <div class="payer-bar-wrap" id="payerBar"></div>
+  <div class="payer-legend" id="payerLegend"></div>
+  <div class="payer-totals">Total: <span id="payerTotal">100.0</span>% &nbsp;|&nbsp; Population covered: <span id="payerPop">4,000,000</span></div>
+</div>
+
+<!-- SECTION 3: DATA TYPES EXPANDER -->
+<div class="slabel">03 — Data Availability</div>
+<div class="expander" id="dataExpander">
+  <div class="exp-header" onclick="toggleExp('dataExpander')">
+    <div class="exp-title">
+      <span>📋</span>
+      <span>Data Types Available in Your HIE</span>
+      <span style="font-size:11px;color:var(--muted);font-weight:300">(deselect types you do NOT have)</span>
+    </div>
+    <span class="exp-arrow">▼</span>
+  </div>
+  <div class="exp-body">
+    <div class="capability-grid" id="dataCapGrid"></div>
+  </div>
+</div>
+
+<!-- SECTION 4: TECH STACK EXPANDER -->
+<div class="slabel" style="margin-top:24px">04 — Technical Capabilities</div>
+<div class="expander" id="techExpander">
+  <div class="exp-header" onclick="toggleExp('techExpander')">
+    <div class="exp-title">
+      <span>⚙️</span>
+      <span>Technical Stack Capabilities</span>
+      <span style="font-size:11px;color:var(--muted);font-weight:300">(deselect capabilities you do NOT have)</span>
+    </div>
+    <span class="exp-arrow">▼</span>
+  </div>
+  <div class="exp-body">
+    <div class="capability-grid" id="techCapGrid"></div>
+  </div>
+</div>
+
+<!-- SECTION 5: PRODUCTS -->
+<div class="slabel" style="margin-top:36px">05 — Elect Products</div>
+<div class="product-filters" id="filterBtns">
+  <button class="filter-btn active" onclick="setFilter('all',this)">All Products</button>
+  <button class="filter-btn" onclick="setFilter('Alerting',this)">Alerting</button>
+  <button class="filter-btn" onclick="setFilter('Infrastructure',this)">Infrastructure</button>
+  <button class="filter-btn" onclick="setFilter('Public Health',this)">Public Health</button>
+  <button class="filter-btn" onclick="setFilter('Quality',this)">Quality</button>
+  <button class="filter-btn" onclick="setFilter('Payment Processes',this)">Payment Processes</button>
+  <button class="filter-btn" onclick="setFilter('Social Needs',this)">Social Needs</button>
+  <button class="filter-btn" onclick="setFilter('New Knowledge',this)">New Knowledge</button>
+</div>
+<div class="products-grid" id="productsGrid"></div>
+
+<!-- RESULTS STICKY BAR -->
+<div class="results-sticky">
+  <div class="results-panel">
+    <div class="res-nums">
+      <div class="res-item"><span class="res-lbl">Elected</span><span class="res-val" id="rCount">0</span></div>
+      <div class="res-item"><span class="res-lbl">Base Revenue</span><span class="res-val" id="rBase">$0</span></div>
+      <div class="res-item"><span class="res-lbl">Volume Revenue</span><span class="res-val gold" id="rVolume">$0</span></div>
+      <div class="res-item"><span class="res-lbl">Total HDU Earnings</span><span class="res-val teal" id="rTotal">$0</span></div>
+      <div class="res-item"><span class="res-lbl">PMPY</span><span class="res-val" id="rPmpy">$0.00</span></div>
+    </div>
+    <div class="res-actions">
+      <button class="btn-reset" onclick="resetAll()">Reset</button>
+      <button class="btn-primary" onclick="saveSnapshot()">Save Snapshot</button>
+      <button class="btn-primary" onclick="exportCSV()">Export CSV</button>
+
+    </div>
+  </div>
+</div>
+
+<!-- CHART + TABLE SECTIONS -->
+<div id="chartSection" style="display:none;margin-top:40px">
+  <div class="slabel">06 — Revenue by Product</div>
+  <div class="bar-chart" id="barChart"></div>
+</div>
+
+<div id="tableSection" style="display:none;margin-top:40px">
+  <div class="slabel">07 — Revenue Breakdown</div>
+  <div style="overflow-x:auto">
+    <table class="btable">
+      <thead><tr>
+        <th>Product</th><th>Class</th><th>Base Rev</th><th>Volume Rev</th>
+        <th>Mkt Pen</th><th>Quality</th><th>HDU Earns</th><th>NewCo Fee</th><th>Net to HDU</th>
+      </tr></thead>
+      <tbody id="breakdownBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div id="dataHeatSection" style="display:none;margin-top:40px">
+  <div class="slabel">08 — Data Requirements Heatmap</div>
+  <div class="heatmap-wrap"><table class="heatmap" id="dataHeatmap"></table></div>
+</div>
+
+<div id="techHeatSection" style="display:none;margin-top:40px">
+  <div class="slabel">09 — Tech Stack Requirements Heatmap</div>
+  <div class="heatmap-wrap"><table class="heatmap" id="techHeatmap"></table></div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div class="admin-panel" id="adminPanel">
+  <div class="slabel" style="margin-bottom:16px">🔐 Admin Panel</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px">
+    <div>
+      <div class="ilabel" style="margin-bottom:8px">Change Admin PIN</div>
+      <div style="display:flex;gap:8px">
+        <input type="password" id="newPin1" placeholder="New PIN" style="background:var(--navy-light);border:1px solid var(--card-border);color:var(--white);font-family:'DM Mono',monospace;font-size:14px;padding:8px 12px;border-radius:6px;width:120px;outline:none;letter-spacing:3px">
+        <input type="password" id="newPin2" placeholder="Confirm" style="background:var(--navy-light);border:1px solid var(--card-border);color:var(--white);font-family:'DM Mono',monospace;font-size:14px;padding:8px 12px;border-radius:6px;width:120px;outline:none;letter-spacing:3px">
+        <button class="btn-sm" onclick="changePin()">Update</button>
+      </div>
+      <div id="pinMsg" style="font-size:11px;color:var(--teal);margin-top:6px;min-height:16px"></div>
+    </div>
+    <div>
+      <div class="ilabel" style="margin-bottom:8px">Session Log</div>
+      <div style="font-size:12px;color:var(--muted)" id="logCount">0 snapshots saved</div>
+    </div>
+  </div>
+  <div class="slabel" style="margin-bottom:12px">Product Descriptions &amp; Overhead</div>
+  <div class="admin-grid" id="adminProductGrid"></div>
+  <div style="margin-top:28px">
+    <div class="slabel" style="margin-bottom:12px">Activity Log</div>
+    <div style="overflow-x:auto">
+      <table class="log-table">
+        <thead><tr><th>Timestamp</th><th>Network</th><th>Products Elected</th><th>Base Rev</th><th>Total Rev</th><th>PMPY</th><th>Notes</th></tr></thead>
+        <tbody id="logTableBody"></tbody>
+      </table>
+    </div>
+    <div style="text-align:right;margin-top:10px">
+      <button class="btn-sm" onclick="clearLog()">Clear Log</button>
+      <button class="btn-sm" onclick="exportLog()" style="margin-left:8px">Export Log CSV</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<!-- ADMIN MODAL -->
+<div class="modal-overlay" id="adminModal">
+  <div class="modal-box">
+    <div class="modal-title">Admin Access</div>
+    <div class="modal-sub">Enter your PIN to access admin settings</div>
+    <input type="password" id="pinInput" class="modal-input" maxlength="8" placeholder="••••" oninput="clearPinErr()">
+    <div class="modal-err" id="pinErr"></div>
+    <div class="modal-actions">
+      <button class="btn-reset" onclick="closeAdminModal()">Cancel</button>
+      <button class="btn-primary" onclick="verifyPin()">Enter</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// DATA DEFINITIONS
+// ══════════════════════════════════════════════════════════
+
+const DATA_TYPES = ['ADT','ORU','VXU','MDM','ORM/ORC','CCD','FHIR','Claims'];
+const TECH_COMPONENTS = ['Message Intake','eMPI','CCD Parsing','Central Data Repository','Data Quality Monitoring','Attribution Through Rosters or Algorithm','Valueset Matching to Code Elements','Data Visualization','Analytics','Consent Management','FHIR API','Provider Directory','Provider Portal','Patient Portal','Text-based Screening','Community Resource Directory'];
+
+const PAYER_DEFAULTS = [
+  {name:'Medicaid',pct:13.5,color:'#4db8ff'},
+  {name:'Medicare',pct:14.9,color:'#7ec8a4'},
+  {name:'Dual Eligible',pct:3.3,color:'#f4c430'},
+  {name:'Commercial Direct',pct:5.8,color:'#d4a0ff'},
+  {name:'Commercial Employer',pct:17.0,color:'#ff9f40'},
+  {name:'Self-Insured',pct:34.4,color:'#80cbc4'},
+  {name:'DoD',pct:2.7,color:'#ff80ab'},
+  {name:'VA',pct:1.1,color:'#a5d6a7'},
+  {name:'Uninsured',pct:7.3,color:'#78909c'},
+];
+// Verify and normalize on load — always sums to exactly 100
+
+const PRODUCTS = [
+  {
+    name:"Health Plan directed ADTs", customers:"Health plans, ACOs, At-risk providers", cls:"Alerting",
+    unitCost:"Transaction", baseUnit:"ADT", defaultBaseRate:150000, volumeUnit:"Per ADT (encounter)", defaultVolumeRate:1.0, overhead:0.05, distUnits:4, defaultElected:true,
+    dataReqs:{ADT:3,ORU:0,VXU:0,MDM:0,'ORM/ORC':0,CCD:0,FHIR:0,Claims:0},
+    techReqs:{'Message Intake':3,eMPI:3,'CCD Parsing':0,'Central Data Repository':0,'Data Quality Monitoring':2,'Attribution Through Rosters or Algorithm':3,'Valueset Matching to Code Elements':0,'Data Visualization':0,Analytics:0,'Consent Management':1,'FHIR API':0,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
+    calcVolume:(pop,conn,pen,vrate)=>(pop*0.17+pop*0.56+pop*2.4)*conn*pen*vrate,
+    calcHDUEarns:(base,vol,qual,oh)=>(base+vol*(1-oh))*qual,
+    calcNewco:(base,vol,oh)=>base*oh+vol*oh,
+  },
+  {
+    name:"FHIR Endpoint Repository queries", customers:"All", cls:"Infrastructure",
+    unitCost:"Transaction", baseUnit:"HDU", defaultBaseRate:250000, volumeUnit:"Transaction", defaultVolumeRate:0.2, overhead:0.21, distUnits:1, defaultElected:true,
+    dataReqs:{ADT:3,ORU:0,VXU:0,MDM:0,'ORM/ORC':0,CCD:0,FHIR:3,Claims:0},
+    techReqs:{'Message Intake':3,eMPI:3,'CCD Parsing':3,'Central Data Repository':3,'Data Quality Monitoring':3,'Attribution Through Rosters or Algorithm':3,'Valueset Matching to Code Elements':0,'Data Visualization':0,Analytics:0,'Consent Management':0,'FHIR API':3,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
+    calcVolume:(pop,conn,pen,vrate)=>pop*3.13*conn*pen*vrate,
+    calcHDUEarns:(base,vol,qual,oh)=>(base+vol*(1-oh))*qual,
+    calcNewco:(base,vol,oh)=>vol*oh,
+  },
+  {
+    name:"Identity Resolution/Verification/Authentication", customers:"All", cls:"Infrastructure",
+    unitCost:"Unique Persons", baseUnit:"PMPM", defaultBaseRate:50000, volumeUnit:"PMPM", defaultVolumeRate:0.5, overhead:0.7, distUnits:1, defaultElected:true,
+    dataReqs:{ADT:0,ORU:0,VXU:0,MDM:0,'ORM/ORC':0,CCD:0,FHIR:0,Claims:0},
+    techReqs:{'Message Intake':3,eMPI:3,'CCD Parsing':0,'Central Data Repository':0,'Data Quality Monitoring':0,'Attribution Through Rosters or Algorithm':0,'Valueset Matching to Code Elements':0,'Data Visualization':0,Analytics:0,'Consent Management':0,'FHIR API':0,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
+    calcVolume:(pop,conn,pen,vrate)=>pop*conn*pen*vrate,
+    calcHDUEarns:(base,vol,qual,oh)=>(base+vol)*(1-oh)*qual,
+    calcNewco:(base,vol,oh)=>(base+vol)*oh,
+  },
+  {
+    name:"Research Networks (PCOR, OMOP, etc.)", customers:"Academics, Pharma, Innovators, AHA", cls:"New Knowledge",
+    unitCost:"Persons*projects", baseUnit:"HDU", defaultBaseRate:250000, volumeUnit:"PMPproject", defaultVolumeRate:0.1, overhead:0.3, distUnits:1, defaultElected:false,
+    factorKey:"studies", factorLabel:"# of Studies", factorDefault:5,
+    dataReqs:{ADT:3,ORU:3,VXU:3,MDM:3,'ORM/ORC':0,CCD:3,FHIR:3,Claims:2},
+    techReqs:{'Message Intake':3,eMPI:3,'CCD Parsing':3,'Central Data Repository':3,'Data Quality Monitoring':3,'Attribution Through Rosters or Algorithm':0,'Valueset Matching to Code Elements':0,'Data Visualization':0,Analytics:3,'Consent Management':3,'FHIR API':1,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
+    calcVolume:(pop,conn,pen,vrate,factor)=>pop*conn*pen*vrate*(factor||5),
+    calcHDUEarns:(base,vol,qual,oh)=>(base+vol)*(1-oh)*qual,
+    calcNewco:(base,vol,oh)=>(base+vol)*oh,
+  },
+  {
+    name:"Administrative Referral Routing", customers:"Health plans, CMS", cls:"Payment Processes",
+    unitCost:"Covered Lives", baseUnit:"HDU", defaultBaseRate:250000, volumeUnit:"PMPY", defaultVolumeRate:0.1, overhead:0.1, distUnits:1, defaultElected:false,
+    dataReqs:{ADT:3,ORU:0,VXU:0,MDM:0,'ORM/ORC':3,CCD:0,FHIR:0,Claims:0},
+    techReqs:{'Message Intake':3,eMPI:0,'CCD Parsing':0,'Central Data Repository':0,'Data Quality Monitoring':0,'Attribution Through Rosters or Algorithm':0,'Valueset Matching to Code Elements':0,'Data Visualization':0,Analytics:0,'Consent Management':0,'FHIR API':0,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
+    calcVolume:(pop,conn,pen,vrate)=>pop*conn*pen*vrate,
+    calcHDUEarns:(base,vol,qual,oh)=>(base+vol)*(1-oh)*qual,
+    calcNewco:(base,vol,oh)=>(base+vol)*oh,
+  },
+  {
+    name:"Administrative Prior Authorization Requests", customers:"Health plans, CMS", cls:"Payment Processes",
+    unitCost:"Covered Lives", baseUnit:"HDU", defaultBaseRate:250000, volumeUnit:"PMPY", defaultVolumeRate:0.1, overhead:0.1, distUnits:1, defaultElected:false,
+    dataReqs:{ADT:3,ORU:0,VXU:0,MDM:0,'ORM/ORC':3,CCD:0,FHIR:3,Claims:0},
+    techReqs:{'Message Intake':3,eMPI:0,'CCD Parsing':0,'Central Data Repository':0,'Data Quality Monitoring':0,'Attribution Through Rosters or Algorithm':0,'Valueset Matching to Code Elements':0,'Data Visualization':0,Analytics:0,'Consent Management':0,'FHIR API':3,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
+    calcVolume:(pop,conn,pen,vrate)=>pop*conn*pen*vrate,
+    calcHDUEarns:(base,vol,qual,oh)=>(base+vol)*(1-oh)*qual,
+    calcNewco:(base,vol,oh)=>(base+vol)*oh,
+  },
+  {
+    name:"Administrative Eligibility Checking", customers:"Health plans, CMS", cls:"Payment Processes",
+    unitCost:"Covered Lives", baseUnit:"HDU", defaultBaseRate:250000, volumeUnit:"PMPY", defaultVolumeRate:0.1, overhead:0.1, distUnits:1, defaultElected:false,
+    dataReqs:{ADT:3,ORU:0,VXU:0,MDM:0,'ORM/ORC':0,CCD:0,FHIR:0,Claims:0},
+    techReqs:{'Message Intake':3,eMPI:0,'CCD Parsing':0,'Central Data Repository':0,'Data Quality Monitoring':0,'Attribution Through Rosters or Algorithm':0,'Valueset Matching to Code Elements':0,'Data Visualization':0,Analytics:0,'Consent Management':0,'FHIR API':0,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
+    calcVolume:(pop,conn,pen,vrate)=>pop*conn*pen*vrate,
+    calcHDUEarns:(base,vol,qual,oh)=>(base+vol)*(1-oh)*qual,
+    calcNewco:(base,vol,oh)=>(base+vol)*oh,
+  },
+  {
+    name:"Administrative Claims Routing", customers:"Health plans, CMS", cls:"Payment Processes",
+    unitCost:"Covered Lives", baseUnit:"HDU", defaultBaseRate:500000, volumeUnit:"PMPY", defaultVolumeRate:0.2, overhead:0.1, distUnits:1, defaultElected:false,
+    dataReqs:{ADT:0,ORU:0,VXU:0,MDM:0,'ORM/ORC':0,CCD:0,FHIR:3,Claims:0},
+    techReqs:{'Message Intake':3,eMPI:0,'CCD Parsing':0,'Central Data Repository':0,'Data Quality Monitoring':0,'Attribution Through Rosters or Algorithm':0,'Valueset Matching to Code Elements':0,'Data Visualization':0,Analytics:0,'Consent Management':0,'FHIR API':0,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
+    calcVolume:(pop,conn,pen,vrate)=>pop*conn*pen*vrate,
+    calcHDUEarns:(base,vol,qual,oh)=>(base+vol)*(1-oh)*qual,
+    calcNewco:(base,vol,oh)=>(base+vol)*oh,
+  },
+  {
+    name:"Data for Risk Adjustment", customers:"Health plans, CMS", cls:"Payment Processes",
+    unitCost:"Covered Lives", baseUnit:"HDU", defaultBaseRate:200000, volumeUnit:"PMPY", defaultVolumeRate:0.1, overhead:0.1, distUnits:1, defaultElected:false,
+    dataReqs:{ADT:3,ORU:1,VXU:1,MDM:1,'ORM/ORC':0,CCD:3,FHIR:1,Claims:1},
+    techReqs:{'Message Intake':3,eMPI:3,'CCD Parsing':1,'Central Data Repository':0,'Data Quality Monitoring':0,'Attribution Through Rosters or Algorithm':3,'Valueset Matching to Code Elements':0,'Data Visualization':0,Analytics:0,'Consent Management':0,'FHIR API':0,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
+    calcVolume:(pop,conn,pen,vrate)=>pop*conn*pen*vrate,
+    calcHDUEarns:(base,vol,qual,oh)=>(base+vol)*(1-oh)*qual,
+    calcNewco:(base,vol,oh)=>(base+vol)*oh,
+  },
+  {
+    name:"Provider ADT Routing", customers:"Provider Organizations", cls:"Alerting",
+    unitCost:"Unique Persons", baseUnit:"HDU", defaultBaseRate:49999, volumeUnit:"PMPY", defaultVolumeRate:0, overhead:0.1, distUnits:2, defaultElected:false,
+    dataReqs:{ADT:0,ORU:0,VXU:0,MDM:0,'ORM/ORC':0,CCD:0,FHIR:0,Claims:0},
+    techReqs:{'Message Intake':0,eMPI:0,'CCD Parsing':0,'Central Data Repository':0,'Data Quality Monitoring':0,'Attribution Through Rosters or Algorithm':0,'Valueset Matching to Code Elements':0,'Data Visualization':0,Analytics:0,'Consent Management':0,'FHIR API':0,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
+    calcVolume:()=>0,
+    calcHDUEarns:(base,vol,qual,oh)=>base*(1-oh)*qual,
+    calcNewco:(base,vol,oh)=>base*oh,
+  },
+  {
+    name:"VA ADT Routing", customers:"VA", cls:"Alerting",
+    unitCost:"Unique Persons", baseUnit:"HDU", defaultBaseRate:50000, volumeUnit:"PMPY", defaultVolumeRate:0.25, overhead:0.05, distUnits:4, defaultElected:true,
+    dataReqs:{ADT:3,ORU:0,VXU:0,MDM:0,'ORM/ORC':0,CCD:0,FHIR:0,Claims:0},
+    techReqs:{'Message Intake':3,eMPI:3,'CCD Parsing':0,'Central Data Repository':0,'Data Quality Monitoring':2,'Attribution Through Rosters or Algorithm':3,'Valueset Matching to Code Elements':0,'Data Visualization':0,Analytics:0,'Consent Management':1,'FHIR API':0,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
+    calcVolume:(pop,conn,pen,vrate)=>pop*0.012*conn*pen*vrate,
+    calcHDUEarns:(base,vol,qual,oh)=>base+vol*(1-oh)*qual,
+    calcNewco:(base,vol,oh)=>vol*oh,
+  },
+  {
+    name:"DoD ADT Routing", customers:"DoD", cls:"Alerting",
+    unitCost:"Unique Persons", baseUnit:"HDU", defaultBaseRate:50000, volumeUnit:"PMPY", defaultVolumeRate:0.25, overhead:0.05, distUnits:4, defaultElected:true,
+    dataReqs:{ADT:3,ORU:0,VXU:0,MDM:0,'ORM/ORC':0,CCD:0,FHIR:0,Claims:0},
+    techReqs:{'Message Intake':3,eMPI:3,'CCD Parsing':0,'Central Data Repository':0,'Data Quality Monitoring':2,'Attribution Through Rosters or Algorithm':3,'Valueset Matching to Code Elements':0,'Data Visualization':0,Analytics:0,'Consent Management':1,'FHIR API':0,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
+    calcVolume:(pop,conn,pen,vrate)=>pop*0.028*conn*pen*vrate,
+    calcHDUEarns:(base,vol,qual,oh)=>base+vol*(1-oh)*qual,
+    calcNewco:(base,vol,oh)=>vol*oh,
+  },
+  {
+    name:"eCase Reporting", customers:"State Public Health, CDC", cls:"Public Health",
+    unitCost:"Unique Persons", baseUnit:"HDU", defaultBaseRate:500000, volumeUnit:"PMPY", defaultVolumeRate:0.1, overhead:0, distUnits:1, defaultElected:true,
+    dataReqs:{ADT:3,ORU:3,VXU:0,MDM:0,'ORM/ORC':0,CCD:3,FHIR:3,Claims:0},
+    techReqs:{'Message Intake':3,eMPI:3,'CCD Parsing':3,'Central Data Repository':3,'Data Quality Monitoring':2,'Attribution Through Rosters or Algorithm':0,'Valueset Matching to Code Elements':3,'Data Visualization':0,Analytics:0,'Consent Management':0,'FHIR API':1,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
+    calcVolume:(pop,conn,pen,vrate)=>pop*conn*pen*vrate,
+    calcHDUEarns:(base,vol,qual,oh)=>(base+vol)*qual,
+    calcNewco:()=>0,
+  },
+  {
+    name:"Chronic Disease Monitoring to Census Tract", customers:"All, CDC", cls:"Public Health",
+    unitCost:"Unique Persons", baseUnit:"HDU", defaultBaseRate:500000, volumeUnit:"PMPerChronic Disease", defaultVolumeRate:0.1, overhead:0, distUnits:1, defaultElected:true,
+    dataReqs:{ADT:3,ORU:3,VXU:0,MDM:0,'ORM/ORC':0,CCD:3,FHIR:3,Claims:0},
+    techReqs:{'Message Intake':3,eMPI:3,'CCD Parsing':3,'Central Data Repository':3,'Data Quality Monitoring':2,'Attribution Through Rosters or Algorithm':0,'Valueset Matching to Code Elements':3,'Data Visualization':3,Analytics:3,'Consent Management':0,'FHIR API':1,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
+    calcVolume:(pop,conn,pen,vrate)=>pop*conn*pen*vrate*5,
+    calcHDUEarns:(base,vol,qual,oh)=>(base+vol)*qual,
+    calcNewco:()=>0,
+  },
+  {
+    name:"Nationwide Syndromic Surveillance Network", customers:"CDC, Local Public Health", cls:"Public Health",
+    unitCost:"Unique Persons", baseUnit:"HDU", defaultBaseRate:150000, volumeUnit:"Person", defaultVolumeRate:0.5, overhead:0.21, distUnits:1, defaultElected:true,
+    dataReqs:{ADT:3,ORU:3,VXU:0,MDM:0,'ORM/ORC':0,CCD:0,FHIR:0,Claims:0},
+    techReqs:{'Message Intake':3,eMPI:3,'CCD Parsing':0,'Central Data Repository':0,'Data Quality Monitoring':0,'Attribution Through Rosters or Algorithm':0,'Valueset Matching to Code Elements':2,'Data Visualization':0,Analytics:0,'Consent Management':0,'FHIR API':0,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
+    calcVolume:(pop,conn,pen,vrate)=>pop*conn*pen*vrate,
+    calcHDUEarns:(base,vol,qual,oh)=>(base+vol*(1-oh))*qual,
+    calcNewco:(base,vol,oh)=>vol*oh,
+  },
+  {
+    name:"Nationwide Drug Reaction/Interaction Alerting", customers:"FDA, Sentinel, VAERS", cls:"Public Health",
+    unitCost:"Unique Persons", baseUnit:"HDU", defaultBaseRate:250000, volumeUnit:"Person", defaultVolumeRate:0.1, overhead:0.21, distUnits:1, defaultElected:true,
+    dataReqs:{ADT:3,ORU:0,VXU:3,MDM:0,'ORM/ORC':0,CCD:3,FHIR:3,Claims:0},
+    techReqs:{'Message Intake':3,eMPI:0,'CCD Parsing':0,'Central Data Repository':0,'Data Quality Monitoring':0,'Attribution Through Rosters or Algorithm':0,'Valueset Matching to Code Elements':0,'Data Visualization':0,Analytics:0,'Consent Management':0,'FHIR API':0,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
+    calcVolume:(pop,conn,pen,vrate)=>pop*conn*pen*vrate,
+    calcHDUEarns:(base,vol,qual,oh)=>(base+vol*(1-oh))*qual,
+    calcNewco:(base,vol,oh)=>vol*oh,
+  },
+  {
+    name:"Electronic Lab Reporting", customers:"State Public Health, CDC", cls:"Public Health",
+    unitCost:"Unique Persons", baseUnit:"HDU", defaultBaseRate:50000, volumeUnit:"PMPY", defaultVolumeRate:0.1, overhead:0, distUnits:1, defaultElected:true,
+    dataReqs:{ADT:3,ORU:3,VXU:0,MDM:0,'ORM/ORC':0,CCD:0,FHIR:0,Claims:0},
+    techReqs:{'Message Intake':3,eMPI:3,'CCD Parsing':0,'Central Data Repository':3,'Data Quality Monitoring':2,'Attribution Through Rosters or Algorithm':0,'Valueset Matching to Code Elements':3,'Data Visualization':0,Analytics:0,'Consent Management':0,'FHIR API':2,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
+    calcVolume:(pop,conn,pen,vrate)=>pop*conn*pen*vrate,
+    calcHDUEarns:(base,vol,qual,oh)=>base*qual,
+    calcNewco:()=>0,
+  },
+  {
+    name:"Vaccine Impact Monitoring", customers:"State Public Health, CDC", cls:"Public Health",
+    unitCost:"Unique Persons", baseUnit:"HDU", defaultBaseRate:200000, volumeUnit:"PMPY", defaultVolumeRate:0.1, overhead:0, distUnits:1, defaultElected:false,
+    dataReqs:{ADT:3,ORU:3,VXU:3,MDM:0,'ORM/ORC':0,CCD:3,FHIR:3,Claims:0},
+    techReqs:{'Message Intake':3,eMPI:3,'CCD Parsing':3,'Central Data Repository':3,'Data Quality Monitoring':2,'Attribution Through Rosters or Algorithm':0,'Valueset Matching to Code Elements':3,'Data Visualization':3,Analytics:3,'Consent Management':0,'FHIR API':2,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
+    calcVolume:(pop,conn,pen,vrate)=>pop*conn*pen*vrate,
+    calcHDUEarns:(base,vol,qual,oh)=>(base+vol)*qual,
+    calcNewco:()=>0,
+  },
+  {
+    name:"Maternal Child Health (ONAF)", customers:"State Public Health, CDC", cls:"Public Health",
+    unitCost:"Unique Persons", baseUnit:"HDU", defaultBaseRate:250000, volumeUnit:"PMPY", defaultVolumeRate:0.1, overhead:0, distUnits:1, defaultElected:false,
+    dataReqs:{ADT:3,ORU:3,VXU:3,MDM:3,'ORM/ORC':0,CCD:3,FHIR:3,Claims:0},
+    techReqs:{'Message Intake':3,eMPI:3,'CCD Parsing':3,'Central Data Repository':3,'Data Quality Monitoring':2,'Attribution Through Rosters or Algorithm':0,'Valueset Matching to Code Elements':3,'Data Visualization':3,Analytics:3,'Consent Management':0,'FHIR API':2,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
+    calcVolume:(pop,conn,pen,vrate)=>pop*conn*pen*vrate,
+    calcHDUEarns:(base,vol,qual,oh)=>(base+vol)*qual,
+    calcNewco:()=>0,
+  },
+  {
+    name:"Bed Availability Reporting", customers:"Office of Readiness & Response", cls:"Public Health",
+    unitCost:"Unique Persons", baseUnit:"HDU", defaultBaseRate:250000, volumeUnit:"PMPY", defaultVolumeRate:0.1, overhead:0.3, distUnits:1, defaultElected:true,
+    dataReqs:{ADT:3,ORU:0,VXU:0,MDM:0,'ORM/ORC':0,CCD:0,FHIR:0,Claims:0},
+    techReqs:{'Message Intake':3,eMPI:3,'CCD Parsing':0,'Central Data Repository':3,'Data Quality Monitoring':2,'Attribution Through Rosters or Algorithm':0,'Valueset Matching to Code Elements':0,'Data Visualization':0,Analytics:0,'Consent Management':0,'FHIR API':0,'Provider Directory':3,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
+    calcVolume:(pop,conn,pen,vrate)=>pop*conn*pen*vrate,
+    calcHDUEarns:(base,vol,qual,oh)=>(base+vol*(1-oh))*qual*0.5,
+    calcNewco:(base,vol,oh)=>vol*oh,
+  },
+  {
+    name:"Disaster/Cyber Attack Response", customers:"Office of Readiness & Response", cls:"Public Health",
+    unitCost:"Unique Persons", baseUnit:"HDU", defaultBaseRate:250000, volumeUnit:"PMPY", defaultVolumeRate:0.1, overhead:0, distUnits:1, defaultElected:false,
+    dataReqs:{ADT:3,ORU:3,VXU:3,MDM:3,'ORM/ORC':3,CCD:3,FHIR:3,Claims:0},
+    techReqs:{'Message Intake':3,eMPI:3,'CCD Parsing':0,'Central Data Repository':0,'Data Quality Monitoring':0,'Attribution Through Rosters or Algorithm':0,'Valueset Matching to Code Elements':0,'Data Visualization':0,Analytics:0,'Consent Management':0,'FHIR API':0,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
+    calcVolume:(pop,conn,pen,vrate)=>pop*conn*pen*vrate,
+    calcHDUEarns:(base,vol,qual,oh)=>(base+vol)*qual,
+    calcNewco:()=>0,
+  },
+  {
+    name:"Prevention Programs", customers:"Administration for Healthy America", cls:"Public Health",
+    unitCost:"Unique Persons", baseUnit:"HDU", defaultBaseRate:500000, volumeUnit:"PMPY", defaultVolumeRate:0.1, overhead:0, distUnits:1, defaultElected:false,
+    dataReqs:{ADT:3,ORU:3,VXU:3,MDM:3,'ORM/ORC':0,CCD:3,FHIR:3,Claims:2},
+    techReqs:{'Message Intake':3,eMPI:3,'CCD Parsing':3,'Central Data Repository':3,'Data Quality Monitoring':3,'Attribution Through Rosters or Algorithm':0,'Valueset Matching to Code Elements':0,'Data Visualization':0,Analytics:3,'Consent Management':0,'FHIR API':0,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
+    calcVolume:(pop,conn,pen,vrate)=>pop*conn*pen*vrate,
+    calcHDUEarns:(base,vol,qual,oh)=>(base+vol)*qual,
+    calcNewco:()=>0,
+  },
+  {
+    name:"Workforce Planning", customers:"Administration for Healthy America", cls:"Public Health",
+    unitCost:"Unique Persons", baseUnit:"HDU", defaultBaseRate:200000, volumeUnit:"PMPY", defaultVolumeRate:0.1, overhead:0, distUnits:1, defaultElected:false,
+    dataReqs:{ADT:3,ORU:3,VXU:3,MDM:3,'ORM/ORC':3,CCD:3,FHIR:2,Claims:2},
+    techReqs:{'Message Intake':3,eMPI:3,'CCD Parsing':3,'Central Data Repository':3,'Data Quality Monitoring':3,'Attribution Through Rosters or Algorithm':0,'Valueset Matching to Code Elements':3,'Data Visualization':3,Analytics:3,'Consent Management':0,'FHIR API':0,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
+    calcVolume:(pop,conn,pen,vrate)=>pop*conn*pen*vrate,
+    calcHDUEarns:(base,vol,qual,oh)=>(base+vol)*qual,
+    calcNewco:()=>0,
+  },
+  {
+    name:"Health of the Nation Dashboards", customers:"All, AHA", cls:"Public Health",
+    unitCost:"Unique Persons", baseUnit:"HDU", defaultBaseRate:200000, volumeUnit:"PMPY", defaultVolumeRate:1.0, overhead:0, distUnits:1, defaultElected:true,
+    dataReqs:{ADT:3,ORU:3,VXU:3,MDM:0,'ORM/ORC':0,CCD:3,FHIR:3,Claims:2},
+    techReqs:{'Message Intake':3,eMPI:3,'CCD Parsing':3,'Central Data Repository':3,'Data Quality Monitoring':3,'Attribution Through Rosters or Algorithm':0,'Valueset Matching to Code Elements':3,'Data Visualization':3,Analytics:3,'Consent Management':0,'FHIR API':0,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
+    calcVolume:(pop,conn,pen,vrate)=>pop*conn*pen*vrate,
+    calcHDUEarns:(base,vol,qual,oh)=>(base+vol)*qual,
+    calcNewco:()=>0,
+  },
+  {
+    name:"Quality Measurement: eCQMs", customers:"Health plans, CMS", cls:"Quality",
+    unitCost:"Persons*Measures", baseUnit:"HDU", defaultBaseRate:500000, volumeUnit:"PMPY", defaultVolumeRate:0.2, overhead:0, distUnits:1, defaultElected:true,
+    factorKey:"measures", factorLabel:"# of Quality Measures", factorDefault:54,
+    dataReqs:{ADT:3,ORU:3,VXU:3,MDM:0,'ORM/ORC':0,CCD:3,FHIR:2,Claims:2},
+    techReqs:{'Message Intake':3,eMPI:3,'CCD Parsing':3,'Central Data Repository':3,'Data Quality Monitoring':3,'Attribution Through Rosters or Algorithm':3,'Valueset Matching to Code Elements':3,'Data Visualization':3,Analytics:3,'Consent Management':0,'FHIR API':0,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
+    calcVolume:(pop,conn,pen,vrate,factor)=>pop*conn*pen*vrate*(factor||54),
+    calcHDUEarns:(base,vol,qual,oh)=>(base+vol)*qual,
+    calcNewco:()=>0,
+  },
+  {
+    name:"Quality Measurement: Care Gaps Alerting", customers:"Health plans, CMS", cls:"Quality",
+    unitCost:"Persons*Measures", baseUnit:"HDU", defaultBaseRate:200000, volumeUnit:"PMPmeasure", defaultVolumeRate:0.1, overhead:0, distUnits:1, defaultElected:true,
+    factorKey:"measures", factorLabel:"# of Quality Measures", factorDefault:54,
+    dataReqs:{ADT:3,ORU:3,VXU:3,MDM:0,'ORM/ORC':0,CCD:3,FHIR:2,Claims:2},
+    techReqs:{'Message Intake':3,eMPI:3,'CCD Parsing':3,'Central Data Repository':3,'Data Quality Monitoring':3,'Attribution Through Rosters or Algorithm':3,'Valueset Matching to Code Elements':3,'Data Visualization':1,Analytics:1,'Consent Management':0,'FHIR API':0,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
+    calcVolume:(pop,conn,pen,vrate,factor)=>pop*conn*pen*vrate*(factor||54),
+    calcHDUEarns:(base,vol,qual,oh)=>(base+vol)*qual,
+    calcNewco:()=>0,
+  },
+  {
+    name:"SDoH Screening + Referral", customers:"Health plans, provider orgs", cls:"Social Needs",
+    unitCost:"Screening", baseUnit:"HDU", defaultBaseRate:250000, volumeUnit:"Screening", defaultVolumeRate:0.85, overhead:0, distUnits:1, defaultElected:true,
+    dataReqs:{ADT:3,ORU:0,VXU:0,MDM:0,'ORM/ORC':0,CCD:0,FHIR:0,Claims:0},
+    techReqs:{'Message Intake':3,eMPI:0,'CCD Parsing':0,'Central Data Repository':0,'Data Quality Monitoring':0,'Attribution Through Rosters or Algorithm':0,'Valueset Matching to Code Elements':0,'Data Visualization':0,Analytics:0,'Consent Management':0,'FHIR API':0,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':3,'Community Resource Directory':3},
+    calcVolume:(pop,conn,pen,vrate)=>pop*conn*pen*vrate,
+    calcHDUEarns:(base,vol,qual,oh)=>(base+vol)*qual,
+    calcNewco:()=>0,
+  },
+  {
+    name:"Medicaid Medical Frailty Determinations", customers:"Medicaid", cls:"Payment Processes",
+    unitCost:"Transaction", baseUnit:"HDU", defaultBaseRate:250001, volumeUnit:"Transaction", defaultVolumeRate:0, overhead:0.05, distUnits:1, defaultElected:true,
+    dataReqs:{ADT:3,ORU:3,VXU:3,MDM:0,'ORM/ORC':0,CCD:3,FHIR:2,Claims:2},
+    techReqs:{'Message Intake':3,eMPI:3,'CCD Parsing':3,'Central Data Repository':3,'Data Quality Monitoring':2,'Attribution Through Rosters or Algorithm':3,'Valueset Matching to Code Elements':3,'Data Visualization':0,Analytics:3,'Consent Management':0,'FHIR API':3,'Provider Directory':0,'Provider Portal':3,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
+    calcVolume:(pop,conn,pen,vrate)=>pop*0.141*conn*pen*vrate,
+    calcHDUEarns:(base,vol,qual,oh)=>(base+vol)*(1-oh)*qual,
+    calcNewco:(base,vol,oh)=>(base+vol)*oh,
+  },
+];
+
+const CLASS_CSS = {
+  'Alerting':'alerting','Infrastructure':'infrastructure','Public Health':'public',
+  'Quality':'quality','Payment Processes':'payment','Social Needs':'social','New Knowledge':'knowledge'
+};
+const CLASS_COLORS = {
+  'Alerting':'#f4c430','Infrastructure':'#4db8ff','Public Health':'#7ec8a4',
+  'Quality':'#d4a0ff','Payment Processes':'#ff9f40','Social Needs':'#ff80ab','New Knowledge':'#80cbc4'
+};
+
+// ══════════════════════════════════════════════════════════
+// SECURITY — PIN HASHING (plain PIN never stored or visible)
+// ══════════════════════════════════════════════════════════
+function _hp(v){
+  // Simple deterministic hash — not cryptographic, but obfuscates PIN from source
+  let h=0x9e3779b9;
+  for(let i=0;i<v.length;i++){ h=Math.imul(h^v.charCodeAt(i),0x9e3779b1); h^=h>>>16; }
+  return(h>>>0).toString(36);
+}
+// ══════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════
+let S = loadState();
+// Default PIN set via obfuscated assembly (not stored as plain text)
+(function(){
+  const _k=[48^2,57^2,50^2,54^2,57^2,56^2]; // charCodes XOR 2
+  const _p=_k.map(c=>String.fromCharCode(c^2)).join('');
+  if(!S.pinHash||S.pinHash==='__pending__'){ S.pinHash=_hp(_p); }
+  _k.fill(0); // clear
+})();
+
+function defaultState() {
+  const elected={}, quality={}, baseFees={}, volRates={}, mktPen={}, factors={};
+  PRODUCTS.forEach((p,i)=>{
+    elected[i]=p.defaultElected; quality[i]=0.9;
+    baseFees[i]=p.defaultBaseRate; volRates[i]=p.defaultVolumeRate;
+    mktPen[i]=1.0; factors[i]=p.factorDefault||null;
+  });
+  const payers=PAYER_DEFAULTS.map(p=>({...p}));
+  const dataAvail={}; DATA_TYPES.forEach(d=>dataAvail[d]=true);
+  const techAvail={}; TECH_COMPONENTS.forEach(t=>techAvail[t]=true);
+  const adminData={}; PRODUCTS.forEach((p,i)=>adminData[i]={desc:'',link:'',overhead:p.overhead});
+  return {elected,quality,baseFees,volRates,mktPen,factors,payers,dataAvail,techAvail,adminData,pinHash:'__pending__',log:[]};
+}
+
+function loadState(){
+  try{
+    const s=localStorage.getItem('pcdh_state');
+    if(s){
+      const p=JSON.parse(s);
+      // Migrate old plain-text pin to hash
+      if(p.pin&&!p.pinHash){ p.pinHash=_hp(p.pin); delete p.pin; }
+      if(p.pinHash) return p;
+    }
+  }catch(e){}
+  return defaultState();
+}
+
+function saveState(){
+  try{ localStorage.setItem('pcdh_state',JSON.stringify(S)); }catch(e){}
+}
+
+let activeFilter='all';
+let adminUnlocked=false;
+
+// ══════════════════════════════════════════════════════════
+// FORMAT HELPERS
+// ══════════════════════════════════════════════════════════
+const fmt=(n)=>{
+  if(n>=1e9)return'$'+(n/1e9).toFixed(2)+'B';
+  if(n>=1e6)return'$'+(n/1e6).toFixed(2)+'M';
+  if(n>=1e3)return'$'+(n/1e3).toFixed(1)+'K';
+  return'$'+n.toFixed(0);
+};
+const fmtFull=(n)=>'$'+Math.round(n).toLocaleString();
+const fmtN=(n)=>n.toLocaleString('en-US',{maximumFractionDigits:0});
+
+// ══════════════════════════════════════════════════════════
+// PAYER MIX BAR
+// ══════════════════════════════════════════════════════════
+let dragging=null, dragStartX=0, dragStartPcts=[];
+
+function normalizePayerToHundred(){
+  const total=S.payers.reduce((a,p)=>a+p.pct,0);
+  if(Math.abs(total-100)>0.01){ const f=100/total; S.payers.forEach(p=>p.pct=p.pct*f); }
+}
+
+function renderPayerBar(){
+  normalizePayerToHundred();
+  const bar=document.getElementById('payerBar');
+  bar.innerHTML='';
+  let cumLeft=0;
+  S.payers.forEach((p,i)=>{
+    const pct=p.pct; // already normalized to 100
+    const seg=document.createElement('div');
+    seg.className='payer-seg';
+    seg.style.left=cumLeft+'%';
+    seg.style.width=pct+'%';
+    seg.style.background=p.color;
+    seg.style.borderRadius=(i===0)?'10px 0 0 10px':(i===S.payers.length-1?'0 10px 10px 0':'0');
+    const shortName=p.name.split(' ')[0];
+    seg.innerHTML=`<span class="payer-seg-label" title="${p.name}: ${p.pct.toFixed(1)}%">${pct>5?p.name:pct>2.5?shortName:''}</span>`;
+    seg.title=`${p.name}: ${p.pct.toFixed(1)}%`;
+    bar.appendChild(seg);
+    cumLeft+=pct;
+    if(i<S.payers.length-1){
+      const div=document.createElement('div');
+      div.className='payer-divider';
+      div.style.left=cumLeft+'%';
+      div.dataset.idx=i;
+      div.addEventListener('mousedown',startDrag);
+      div.addEventListener('touchstart',startDragTouch,{passive:true});
+      bar.appendChild(div);
+    }
+  });
+  // Legend with click-to-edit
+  const leg=document.getElementById('payerLegend');
+  leg.innerHTML=S.payers.map((p,i)=>`
+    <div class="payer-leg-item" style="cursor:pointer" title="Click to edit" onclick="editPayerPct(${i},this)">
+      <div class="payer-leg-dot" style="background:${p.color}"></div>
+      <span>${p.name}: <strong style="color:var(--white)" id="payer-val-${i}">${p.pct.toFixed(1)}%</strong></span>
+    </div>`).join('');
+  const pop=parseFloat(document.getElementById('empiPop').value)||4000000;
+  document.getElementById('payerTotal').textContent='100.0';
+  document.getElementById('payerPop').textContent=fmtN(pop);
+}
+
+function editPayerPct(idx, el){
+  // Replace the strong element with an inline input
+  const strong=document.getElementById('payer-val-'+idx);
+  if(!strong||el.querySelector('input'))return;
+  const currentVal=S.payers[idx].pct.toFixed(1);
+  const inp=document.createElement('input');
+  inp.type='number'; inp.min='0.1'; inp.max='99'; inp.step='0.1';
+  inp.value=currentVal;
+  inp.style.cssText='width:52px;background:var(--navy-light);border:1px solid var(--teal);color:var(--teal);font-family:DM Mono,monospace;font-size:12px;padding:1px 4px;border-radius:4px;outline:none;font-weight:700';
+  strong.replaceWith(inp);
+  inp.focus(); inp.select();
+  const commit=()=>{
+    const newVal=parseFloat(inp.value);
+    if(!isNaN(newVal)&&newVal>0){
+      const oldVal=S.payers[idx].pct;
+      const diff=newVal-oldVal;
+      // Distribute the difference proportionally among other payers
+      const others=S.payers.filter((_,i2)=>i2!==idx);
+      const otherTotal=others.reduce((a,p)=>a+p.pct,0);
+      if(otherTotal>0){
+        S.payers.forEach((p,i2)=>{ if(i2!==idx) p.pct=Math.max(0.1,p.pct-(diff*(p.pct/otherTotal))); });
+      }
+      S.payers[idx].pct=newVal;
+      normalizePayerToHundred();
+    }
+    saveState(); renderPayerBar(); recalc();
+  };
+  inp.addEventListener('blur',commit);
+  inp.addEventListener('keydown',e=>{ if(e.key==='Enter')commit(); if(e.key==='Escape'){saveState();renderPayerBar();} });
+  inp.addEventListener('click',e=>e.stopPropagation());
+}
+
+function startDrag(e){
+  const idx=parseInt(e.currentTarget.dataset.idx);
+  dragging=idx;
+  dragStartX=e.clientX;
+  dragStartPcts=S.payers.map(p=>p.pct);
+  document.addEventListener('mousemove',onDrag);
+  document.addEventListener('mouseup',stopDrag);
+  e.preventDefault();
+}
+function startDragTouch(e){
+  const idx=parseInt(e.currentTarget.dataset.idx);
+  dragging=idx;
+  dragStartX=e.touches[0].clientX;
+  dragStartPcts=S.payers.map(p=>p.pct);
+  document.addEventListener('touchmove',onDragTouch,{passive:false});
+  document.addEventListener('touchend',stopDrag);
+}
+function onDrag(e){ doDrag(e.clientX); }
+function onDragTouch(e){ e.preventDefault(); doDrag(e.touches[0].clientX); }
+function doDrag(clientX){
+  if(dragging===null)return;
+  const bar=document.getElementById('payerBar');
+  const barW=bar.getBoundingClientRect().width;
+  const deltaX=clientX-dragStartX;
+  const deltaPct=(deltaX/barW)*100;
+  const newL=dragStartPcts[dragging]+deltaPct;
+  const newR=dragStartPcts[dragging+1]-deltaPct;
+  if(newL<0.5||newR<0.5)return;
+  S.payers[dragging].pct=newL;
+  S.payers[dragging+1].pct=newR;
+  renderPayerBar();
+  recalc();
+}
+function stopDrag(){ dragging=null; document.removeEventListener('mousemove',onDrag); document.removeEventListener('mouseup',stopDrag); document.removeEventListener('touchmove',onDragTouch); document.removeEventListener('touchend',stopDrag); saveState(); }
+function resetPayerMix(){ S.payers=PAYER_DEFAULTS.map(p=>({...p})); normalizePayerToHundred(); renderPayerBar(); recalc(); saveState(); }
+
+// ══════════════════════════════════════════════════════════
+// CAPABILITY GRIDS
+// ══════════════════════════════════════════════════════════
+function renderCapGrids(){
+  const dg=document.getElementById('dataCapGrid');
+  dg.innerHTML=DATA_TYPES.map(d=>{
+    const active=S.dataAvail[d];
+    return`<div class="cap-pill ${active?'active':'inactive'}" onclick="toggleCap('data','${d}')">
+      <div class="cap-check">${active?'✓':'✗'}</div>
+      <span>${d}</span>
+    </div>`;
+  }).join('');
+  const tg=document.getElementById('techCapGrid');
+  tg.innerHTML=TECH_COMPONENTS.map(t=>{
+    const active=S.techAvail[t];
+    const short=t.length>20?t.substring(0,18)+'…':t;
+    return`<div class="cap-pill ${active?'active':'inactive'}" onclick="toggleCap('tech','${t.replace(/'/g,"\\'")}')">
+      <div class="cap-check">${active?'✓':'✗'}</div>
+      <span title="${t}">${short}</span>
+    </div>`;
+  }).join('');
+}
+
+function toggleCap(type,key){
+  if(type==='data') S.dataAvail[key]=!S.dataAvail[key];
+  else S.techAvail[key]=!S.techAvail[key];
+  renderCapGrids(); renderProducts(); recalc(); saveState();
+}
+function toggleExp(id){ document.getElementById(id).classList.toggle('open'); }
+
+// ══════════════════════════════════════════════════════════
+// READINESS SCORING
+// ══════════════════════════════════════════════════════════
+function getReadinessData(p){
+  const pills=[];
+  DATA_TYPES.forEach(d=>{
+    const req=p.dataReqs[d]||0;
+    if(req===0)return;
+    const have=S.dataAvail[d];
+    const cls=have?(req===3?'rp-green':req===2?'rp-yellow':'rp-na'):'rp-red';
+    pills.push(`<span class="rp rp-data ${cls}" title="${d} (req: ${req})">${d}</span>`);
+  });
+  return pills;
+}
+function getReadinessTech(p){
+  const pills=[];
+  TECH_COMPONENTS.forEach(t=>{
+    const req=p.techReqs[t]||0;
+    if(req===0)return;
+    const have=S.techAvail[t];
+    const short=t.split(' ').map(w=>w[0]).join('').substring(0,4);
+    const cls=have?(req===3?'rp-green':req===2?'rp-yellow':'rp-na'):'rp-red';
+    pills.push(`<span class="rp rp-tech ${cls}" title="${t} (req: ${req})">${short}</span>`);
+  });
+  return pills;
+}
+function getOverallReadiness(p){
+  // Check if any critical (3) data or tech is missing
+  const critDataMissing=DATA_TYPES.some(d=>p.dataReqs[d]===3&&!S.dataAvail[d]);
+  const critTechMissing=TECH_COMPONENTS.some(t=>p.techReqs[t]===3&&!S.techAvail[t]);
+  if(critDataMissing||critTechMissing)return'red';
+  const anyMissing=DATA_TYPES.some(d=>p.dataReqs[d]>0&&!S.dataAvail[d])||
+                   TECH_COMPONENTS.some(t=>p.techReqs[t]>0&&!S.techAvail[t]);
+  return anyMissing?'yellow':'green';
+}
+
+// ══════════════════════════════════════════════════════════
+// PRODUCT CARDS
+// ══════════════════════════════════════════════════════════
+function setFilter(cls,btn){
+  activeFilter=cls;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderProducts();
+}
+
+function renderProducts(){
+  const pop=parseFloat(document.getElementById('empiPop').value)||4000000;
+  const conn=parseFloat(document.getElementById('pctConnected').value)||0.8;
+  const grid=document.getElementById('productsGrid');
+  const filtered=PRODUCTS.map((p,i)=>({...p,idx:i})).filter(p=>activeFilter==='all'||p.cls===activeFilter);
+
+  grid.innerHTML=filtered.map((p,fi)=>{
+    const idx=p.idx;
+    const elected=S.elected[idx];
+    const q=S.quality[idx];
+    const bf=S.baseFees[idx];
+    const vr=S.volRates[idx];
+    const mp=S.mktPen[idx];
+    const oh=S.adminData[idx]?.overhead??p.overhead;
+    const factor=S.factors[idx];
+    const vol=p.calcVolume(pop,conn,mp,vr,factor);
+    const earns=p.calcHDUEarns(bf,vol,q,oh);
+    const newco=p.calcNewco(bf,vol,oh);
+    const readiness=getOverallReadiness(p);
+    const dataPills=getReadinessData(p);
+    const techPills=getReadinessTech(p);
+    const css=CLASS_CSS[p.cls]||'infrastructure';
+    const adminInfo=S.adminData[idx]||{};
+    const desc=adminInfo.desc||'';
+    const link=adminInfo.link||'';
+    const readColor={'green':'var(--green)','yellow':'var(--yellow)','red':'var(--red)'}[readiness];
+    const defaultVR=p.defaultVolumeRate;
+    const maxVR=defaultVR*2||0.001;
+
+    // Volume rate slider pct
+    const sliderPct=defaultVR>0?Math.min(100,Math.max(0,(vr/maxVR)*100)):50;
+    const defMarkerPct=50;
+
+    return`
+    <div class="product-card${elected?' elected':''}" id="pc-${idx}" style="animation-delay:${fi*.025}s">
+      <div class="pc-header">
+        <div class="pc-name" onclick="toggleProduct(${idx})">${p.name}</div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="width:8px;height:8px;border-radius:50%;background:${readColor};box-shadow:0 0 6px ${readColor}" title="Readiness: ${readiness}"></div>
+          <button class="elect-btn" onclick="toggleProduct(${idx})">${elected?'✓':'+'}</button>
+        </div>
+      </div>
+      <div class="pc-meta">
+        <span class="mtag ${css}">${p.cls}</span>
+        <span class="mtag">${p.volumeUnit}</span>
+      </div>
+      ${desc?`<div class="pc-desc">${desc}</div>`:''}
+      ${link?`<div class="pc-link"><a href="${link}" target="_blank">🔗 Product Page</a></div>`:''}
+      <div class="readiness-block">
+        ${dataPills.length?`<div class="readiness-row"><span class="readiness-row-label">DATA</span>${dataPills.join('')}</div>`:''}
+        ${techPills.length?`<div class="readiness-row"><span class="readiness-row-label">TECH</span>${techPills.join('')}</div>`:''}
+      </div>
+      <div class="pc-revenue">
+        <span class="rev-lbl">Est. HDU Earnings:</span>
+        <span class="rev-val">${fmt(earns)}</span>
+        <span class="rev-base-lbl">base ${fmt(bf)}</span>
+      </div>
+      <div style="font-size:10px;color:var(--muted);margin-bottom:2px">${p.customers}</div>
+      <div class="pc-controls">
+        <div class="ctrl-row">
+          <div class="ctrl-label">
+            <span>Minimum Base Fee</span>
+            <span class="ctrl-val">$<input type="number" id="bf-${idx}" value="${bf}" min="0" step="1000"
+              style="background:transparent;border:none;border-bottom:1px solid rgba(0,201,177,.4);color:var(--teal);font-family:'DM Mono',monospace;font-size:12px;width:90px;outline:none;text-align:right"
+              onchange="setBaseFee(${idx},this.value)" onclick="event.stopPropagation()"></span>
+          </div>
+        </div>
+        ${defaultVR>0?`
+        <div class="ctrl-row">
+          <div class="ctrl-label">
+            <span>Volume Rate (${p.volumeUnit})</span>
+            <span class="ctrl-val" id="vr-lbl-${idx}">$${vr.toFixed(3)}</span>
+          </div>
+          <div class="slider-wrap">
+            <input type="range" class="styled-range" min="0" max="${maxVR}" step="${maxVR/200}"
+              value="${vr}" id="vr-${idx}"
+              onclick="event.stopPropagation()"
+              oninput="setVolRate(${idx},this.value)">
+            <div class="default-marker" style="left:50%"></div>
+          </div>
+        </div>`:``}
+        <div class="ctrl-row">
+          <div class="ctrl-label">
+            <span>Market Penetration (volume only)</span>
+            <span class="ctrl-val" id="mp-lbl-${idx}">${Math.round(mp*100)}%</span>
+          </div>
+          <div class="slider-wrap">
+            <input type="range" class="styled-range" min="0.01" max="1" step="0.01"
+              value="${mp}" id="mp-${idx}"
+              onclick="event.stopPropagation()"
+              oninput="setMktPen(${idx},this.value)">
+            <div class="default-marker" style="left:99%"></div>
+          </div>
+        </div>
+        ${p.factorKey?`
+        <div class="ctrl-row">
+          <div class="ctrl-label"><span>${p.factorLabel}</span></div>
+          <div class="ctrl-inline">
+            <input type="number" id="fac-${idx}" value="${factor??p.factorDefault}" min="1" step="1"
+              onclick="event.stopPropagation()"
+              onchange="setFactor(${idx},this.value)">
+            <label>(default: ${p.factorDefault})</label>
+          </div>
+        </div>`:``}
+        <div class="ctrl-row">
+          <div class="ctrl-label">
+            <span>Quality / SLA Score</span>
+            <span class="ctrl-val" id="ql-lbl-${idx}">${Math.round(q*100)}%</span>
+          </div>
+          <input type="range" class="qual-slider" min="0.1" max="1" step="0.05"
+            value="${q}" id="ql-${idx}"
+            onclick="event.stopPropagation()"
+            oninput="setQuality(${idx},this.value)">
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleProduct(idx){
+  S.elected[idx]=!S.elected[idx];
+  saveState(); renderProducts(); recalc();
+}
+function setBaseFee(idx,val){
+  S.baseFees[idx]=parseFloat(val)||0;
+  updateCardRevenue(idx);
+  saveState(); recalc();
+}
+function setVolRate(idx,val){
+  S.volRates[idx]=parseFloat(val);
+  const lbl=document.getElementById('vr-lbl-'+idx);
+  if(lbl)lbl.textContent='$'+parseFloat(val).toFixed(3);
+  updateCardRevenue(idx);
+  saveState(); recalc();
+}
+function setMktPen(idx,val){
+  S.mktPen[idx]=parseFloat(val);
+  const lbl=document.getElementById('mp-lbl-'+idx);
+  if(lbl)lbl.textContent=Math.round(val*100)+'%';
+  updateCardRevenue(idx);
+  saveState(); recalc();
+}
+function setFactor(idx,val){
+  S.factors[idx]=parseInt(val)||1;
+  updateCardRevenue(idx);
+  saveState(); recalc();
+}
+function setQuality(idx,val){
+  S.quality[idx]=parseFloat(val);
+  const lbl=document.getElementById('ql-lbl-'+idx);
+  if(lbl)lbl.textContent=Math.round(val*100)+'%';
+  updateCardRevenue(idx);
+  saveState(); recalc();
+}
+
+// ══════════════════════════════════════════════════════════
+// LIVE CARD REVENUE UPDATE
+// ══════════════════════════════════════════════════════════
+function updateCardRevenue(idx){
+  const p=PRODUCTS[idx];
+  if(!p)return;
+  const pop=parseFloat(document.getElementById('empiPop').value)||4000000;
+  const conn=parseFloat(document.getElementById('pctConnected').value)||0.8;
+  const q=S.quality[idx], bf=S.baseFees[idx], vr=S.volRates[idx];
+  const mp=S.mktPen[idx], factor=S.factors[idx];
+  const oh=S.adminData[idx]?.overhead??p.overhead;
+  const vol=p.calcVolume(pop,conn,mp,vr,factor);
+  const earns=p.calcHDUEarns(bf,vol,q,oh);
+  // Update the rev-val span inside this card
+  const card=document.getElementById('pc-'+idx);
+  if(!card)return;
+  const revVal=card.querySelector('.rev-val');
+  const revBase=card.querySelector('.rev-base-lbl');
+  if(revVal)revVal.textContent=fmt(earns);
+  if(revBase)revBase.textContent='base '+fmt(bf);
+}
+
+// ══════════════════════════════════════════════════════════
+// RECALC / RESULTS
+// ══════════════════════════════════════════════════════════
+function recalc(){
+  const pop=parseFloat(document.getElementById('empiPop').value)||4000000;
+  const conn=parseFloat(document.getElementById('pctConnected').value)||0.8;
+  let totBase=0,totVol=0,totEarns=0,totNewco=0,count=0;
+  const rows=[];
+
+  PRODUCTS.forEach((p,i)=>{
+    if(!S.elected[i])return;
+    count++;
+    const q=S.quality[i]; const bf=S.baseFees[i]; const vr=S.volRates[i];
+    const mp=S.mktPen[i]; const factor=S.factors[i];
+    const oh=S.adminData[i]?.overhead??p.overhead;
+    const vol=p.calcVolume(pop,conn,mp,vr,factor);
+    const earns=p.calcHDUEarns(bf,vol,q,oh);
+    const newco=p.calcNewco(bf,vol,oh);
+    const net=earns-newco;
+    totBase+=bf; totVol+=vol; totEarns+=earns; totNewco+=newco;
+    rows.push({name:p.name,cls:p.cls,bf,vol,earns,newco,net,q,mp,p,idx:i});
+  });
+
+  const pmpy=pop>0?totEarns/pop:0;
+  document.getElementById('rCount').textContent=count;
+  document.getElementById('rBase').textContent=fmt(totBase);
+  document.getElementById('rVolume').textContent=fmt(totVol);
+  document.getElementById('rTotal').textContent=fmt(totEarns);
+  document.getElementById('rPmpy').textContent='$'+pmpy.toFixed(2);
+
+  renderBreakdown(rows,totBase,totVol,totEarns,totNewco);
+  renderBarChart(rows);
+  renderHeatmaps(rows);
+  const show=rows.length>0;
+  document.getElementById('tableSection').style.display=show?'block':'none';
+  document.getElementById('chartSection').style.display=show?'block':'none';
+  document.getElementById('dataHeatSection').style.display=show?'block':'none';
+  document.getElementById('techHeatSection').style.display=show?'block':'none';
+}
+
+function renderBreakdown(rows,totBase,totVol,totEarns,totNewco){
+  const body=document.getElementById('breakdownBody');
+  body.innerHTML=rows.map(r=>`<tr>
+    <td>${r.name}</td>
+    <td><span class="mtag ${CLASS_CSS[r.cls]||''}">${r.cls}</span></td>
+    <td class="mono">${fmtFull(r.bf)}</td>
+    <td class="mono">${fmtFull(r.vol)}</td>
+    <td class="mono">${Math.round(r.mp*100)}%</td>
+    <td class="mono">${Math.round(r.q*100)}%</td>
+    <td class="mono tc">${fmtFull(r.earns)}</td>
+    <td class="mono mc">${fmtFull(r.newco)}</td>
+    <td class="mono gc">${fmtFull(r.net)}</td>
+  </tr>`).join('')+`
+  <tr class="td-total">
+    <td colspan="2"><strong>TOTALS</strong></td>
+    <td class="mono"><strong>${fmtFull(totBase)}</strong></td>
+    <td class="mono"><strong>${fmtFull(totVol)}</strong></td>
+    <td>—</td><td>—</td>
+    <td class="mono tc"><strong>${fmtFull(totEarns)}</strong></td>
+    <td class="mono mc"><strong>${fmtFull(totNewco)}</strong></td>
+    <td class="mono gc"><strong>${fmtFull(totEarns-totNewco)}</strong></td>
+  </tr>`;
+}
+
+function renderBarChart(rows){
+  const chart=document.getElementById('barChart');
+  const sorted=[...rows].sort((a,b)=>b.earns-a.earns);
+  const max=sorted[0]?.earns||1;
+  chart.innerHTML=sorted.map(r=>{
+    const pct=Math.max(2,(r.earns/max)*100);
+    const color=CLASS_COLORS[r.cls]||'#4db8ff';
+    return`<div class="bar-row">
+      <div class="bar-lbl" title="${r.name}">${r.name}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}">
+        <span class="bar-amt">${fmt(r.earns)}</span>
+      </div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderHeatmaps(rows){
+  if(!rows.length)return;
+  // DATA HEATMAP
+  const dh=document.getElementById('dataHeatmap');
+  dh.innerHTML=`<thead><tr><th class="row-h">Product</th>${DATA_TYPES.map(d=>`<th style="font-size:9px">${d}</th>`).join('')}</tr></thead>
+  <tbody>${rows.map(r=>`<tr><td class="row-name">${r.name}</td>${DATA_TYPES.map(d=>{
+    const req=r.p.dataReqs[d]||0;
+    if(req===0)return`<td class="hm-0">—</td>`;
+    const have=S.dataAvail[d];
+    const cls=have?`hm-${req}-avail`:`hm-3-miss`;
+    const label=have?req:'✗';
+    return`<td class="${cls}" title="${d} req:${req} ${have?'✓':'MISSING'}">${label}</td>`;
+  }).join('')}</tr>`).join('')}</tbody>`;
+  // TECH HEATMAP
+  const th=document.getElementById('techHeatmap');
+  const shortTC=TECH_COMPONENTS.map(t=>t.split(' ').map(w=>w[0]).join('').substring(0,4));
+  th.innerHTML=`<thead><tr><th class="row-h">Product</th>${TECH_COMPONENTS.map((t,i)=>`<th title="${t}">${shortTC[i]}</th>`).join('')}</tr></thead>
+  <tbody>${rows.map(r=>`<tr><td class="row-name">${r.name}</td>${TECH_COMPONENTS.map(t=>{
+    const req=r.p.techReqs[t]||0;
+    if(req===0)return`<td class="hm-0">—</td>`;
+    const have=S.techAvail[t];
+    const cls=have?`hm-${req}-avail`:`hm-3-miss`;
+    const label=have?req:'✗';
+    return`<td class="${cls}" title="${t} req:${req} ${have?'✓':'MISSING'}">${label}</td>`;
+  }).join('')}</tr>`).join('')}</tbody>`;
+}
+
+// ══════════════════════════════════════════════════════════
+// ADMIN
+// ══════════════════════════════════════════════════════════
+function openAdminModal(){
+  document.getElementById('adminModal').classList.add('open');
+  document.getElementById('pinInput').value='';
+  document.getElementById('pinErr').textContent='';
+  setTimeout(()=>document.getElementById('pinInput').focus(),100);
+}
+function closeAdminModal(){ document.getElementById('adminModal').classList.remove('open'); }
+function clearPinErr(){ document.getElementById('pinErr').textContent=''; }
+function verifyPin(){
+  const entered=document.getElementById('pinInput').value;
+  if(_hp(entered)===S.pinHash){
+    closeAdminModal();
+    adminUnlocked=true;
+    document.getElementById('adminPanel').classList.add('visible');
+    renderAdminPanel();
+    document.getElementById('adminPanel').scrollIntoView({behavior:'smooth',block:'start'});
+  } else {
+    document.getElementById('pinErr').textContent='Incorrect PIN. Try again.';
+    document.getElementById('pinInput').value='';
+  }
+}
+document.getElementById('pinInput').addEventListener('keydown',e=>{ if(e.key==='Enter') verifyPin(); });
+
+function changePin(){
+  const p1=document.getElementById('newPin1').value;
+  const p2=document.getElementById('newPin2').value;
+  const msg=document.getElementById('pinMsg');
+  if(!p1||p1.length<4){msg.textContent='PIN must be at least 4 digits';msg.style.color='var(--red)';return;}
+  if(p1!==p2){msg.textContent='PINs do not match';msg.style.color='var(--red)';return;}
+  S.pinHash=_hp(p1); saveState();
+  msg.textContent='PIN updated successfully';msg.style.color='var(--teal)';
+  document.getElementById('newPin1').value='';
+  document.getElementById('newPin2').value='';
+}
+
+function renderAdminPanel(){
+  const grid=document.getElementById('adminProductGrid');
+  grid.innerHTML=PRODUCTS.map((p,i)=>{
+    const ad=S.adminData[i]||{};
+    return`<div class="admin-card">
+      <h4>${p.name}</h4>
+      <div class="admin-field">
+        <label>Description</label>
+        <textarea id="adesc-${i}" onchange="saveAdminField(${i})">${ad.desc||''}</textarea>
+      </div>
+      <div class="admin-field">
+        <label>Product Page URL</label>
+        <input type="text" id="alink-${i}" value="${ad.link||''}" placeholder="https://..." onchange="saveAdminField(${i})">
+      </div>
+      <div class="admin-field">
+        <label>Overhead % (currently ${((ad.overhead??p.overhead)*100).toFixed(0)}%)</label>
+        <input type="number" id="aoh-${i}" value="${((ad.overhead??p.overhead)*100).toFixed(1)}" min="0" max="100" step="0.5" onchange="saveAdminField(${i})">
+      </div>
+    </div>`;
+  }).join('');
+  renderLogTable();
+  document.getElementById('logCount').textContent=S.log.length+' snapshots saved';
+}
+
+function saveAdminField(i){
+  const desc=document.getElementById('adesc-'+i)?.value||'';
+  const link=document.getElementById('alink-'+i)?.value||'';
+  const ohVal=parseFloat(document.getElementById('aoh-'+i)?.value)||0;
+  S.adminData[i]={desc,link,overhead:ohVal/100};
+  saveState(); renderProducts(); recalc();
+}
+
+function renderLogTable(){
+  const body=document.getElementById('logTableBody');
+  if(!S.log.length){body.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px">No snapshots yet</td></tr>';return;}
+  body.innerHTML=[...S.log].reverse().map(e=>`<tr>
+    <td>${e.ts}</td>
+    <td>${e.network}</td>
+    <td>${e.count}</td>
+    <td>${e.base}</td>
+    <td>${e.total}</td>
+    <td>${e.pmpy}</td>
+    <td>${e.notes||'—'}</td>
+  </tr>`).join('');
+}
+
+function saveSnapshot(){
+  const pop=parseFloat(document.getElementById('empiPop').value)||4000000;
+  const conn=parseFloat(document.getElementById('pctConnected').value)||0.8;
+  let totBase=0,totEarns=0,count=0;
+  PRODUCTS.forEach((p,i)=>{
+    if(!S.elected[i])return; count++;
+    const q=S.quality[i],bf=S.baseFees[i],vr=S.volRates[i],mp=S.mktPen[i],factor=S.factors[i];
+    const oh=S.adminData[i]?.overhead??p.overhead;
+    const vol=p.calcVolume(pop,conn,mp,vr,factor);
+    const earns=p.calcHDUEarns(bf,vol,q,oh);
+    totBase+=bf; totEarns+=earns;
+  });
+  const pmpy=pop>0?totEarns/pop:0;
+  const entry={
+    ts:new Date().toLocaleString(),
+    network:document.getElementById('networkName').value||'HDU',
+    count,base:fmtFull(totBase),total:fmtFull(totEarns),pmpy:'$'+pmpy.toFixed(2),notes:''
+  };
+  S.log.push(entry); saveState();
+  if(adminUnlocked)renderLogTable();
+  // Flash feedback
+  const btn=event.target;
+  const orig=btn.textContent; btn.textContent='✓ Saved!'; btn.style.background='#4caf50';
+  setTimeout(()=>{ btn.textContent=orig; btn.style.background=''; },2000);
+}
+
+function clearLog(){ if(confirm('Clear all log entries?')){ S.log=[]; saveState(); renderLogTable(); document.getElementById('logCount').textContent='0 snapshots saved'; } }
+function exportLog(){
+  let csv='Timestamp,Network,Products Elected,Base Rev,Total Rev,PMPY,Notes\n';
+  S.log.forEach(e=>{ csv+=`"${e.ts}","${e.network}","${e.count}","${e.base}","${e.total}","${e.pmpy}","${e.notes||''}"\n`; });
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='PCDH2_Activity_Log.csv'; a.click();
+}
+
+// ══════════════════════════════════════════════════════════
+// EXPORT CSV
+// ══════════════════════════════════════════════════════════
+function exportCSV(){
+  const pop=parseFloat(document.getElementById('empiPop').value)||4000000;
+  const conn=parseFloat(document.getElementById('pctConnected').value)||0.8;
+  const name=document.getElementById('networkName').value||'HDU';
+  let csv=`PCDH 2.0 Revenue Calculator — ${name}\nPopulation,${pop}\n% Connected,${(conn*100).toFixed(0)}%\n\n`;
+  csv+='Product,Class,Customers,Base Fee,Volume Rev,Mkt Pen,Quality,HDU Earns,NewCo Fee,Net to HDU\n';
+  PRODUCTS.forEach((p,i)=>{
+    if(!S.elected[i])return;
+    const q=S.quality[i],bf=S.baseFees[i],vr=S.volRates[i],mp=S.mktPen[i],factor=S.factors[i];
+    const oh=S.adminData[i]?.overhead??p.overhead;
+    const vol=p.calcVolume(pop,conn,mp,vr,factor);
+    const earns=p.calcHDUEarns(bf,vol,q,oh);
+    const newco=p.calcNewco(bf,vol,oh);
+    csv+=`"${p.name}","${p.cls}","${p.customers}",${bf.toFixed(0)},${vol.toFixed(0)},${(mp*100).toFixed(0)}%,${(q*100).toFixed(0)}%,${earns.toFixed(0)},${newco.toFixed(0)},${(earns-newco).toFixed(0)}\n`;
+  });
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`PCDH2_${name.replace(/\s+/g,'_')}_Revenue.csv`; a.click();
+}
+
+// ══════════════════════════════════════════════════════════
+// RESET
+// ══════════════════════════════════════════════════════════
+function resetAll(){
+  const pin=S.pin; const log=S.log;
+  S=defaultState(); S.pin=pin; S.log=log;
+  document.getElementById('empiPop').value=4000000;
+  document.getElementById('svcPop').value=4000000;
+  document.getElementById('pctConnected').value=0.8;
+  document.getElementById('defaultQuality').value=0.9;
+  document.getElementById('connLabel').textContent='80%';
+  document.getElementById('qualLabel').textContent='90%';
+  saveState(); renderPayerBar(); renderCapGrids(); renderProducts(); recalc();
+}
+
+// ══════════════════════════════════════════════════════════
+// GLOBAL SLIDER LISTENERS
+// ══════════════════════════════════════════════════════════
+document.getElementById('pctConnected').addEventListener('input',function(){
+  document.getElementById('connLabel').textContent=Math.round(this.value*100)+'%';
+  renderProducts(); recalc();
+});
+document.getElementById('defaultQuality').addEventListener('input',function(){
+  document.getElementById('qualLabel').textContent=Math.round(this.value*100)+'%';
+  PRODUCTS.forEach((_,i)=>{ S.quality[i]=parseFloat(this.value); });
+  saveState(); renderProducts(); recalc();
+});
+document.getElementById('empiPop').addEventListener('input',()=>{ renderPayerBar(); renderProducts(); recalc(); });
+document.getElementById('svcPop').addEventListener('input',()=>{ renderProducts(); recalc(); });
+document.getElementById('adminModal').addEventListener('click',function(e){ if(e.target===this) closeAdminModal(); });
+
+// ══════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════
+renderPayerBar();
+renderCapGrids();
+renderProducts();
+recalc();
+</script>
+</body>
+</html>
