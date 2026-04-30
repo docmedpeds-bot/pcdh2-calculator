@@ -342,8 +342,10 @@ input[type=text].field:focus, input[type=number].field:focus { border-color:var(
     <div class="res-nums">
       <div class="res-item"><span class="res-lbl">Elected</span><span class="res-val" id="rCount">0</span></div>
       <div class="res-item"><span class="res-lbl">Base Revenue</span><span class="res-val" id="rBase">$0</span></div>
-      <div class="res-item"><span class="res-lbl">Volume Revenue</span><span class="res-val gold" id="rVolume">$0</span></div>
-      <div class="res-item"><span class="res-lbl">Total HDU Earnings</span><span class="res-val teal" id="rTotal">$0</span></div>
+      <div class="res-item"><span class="res-lbl">+ Volume Revenue</span><span class="res-val gold" id="rVolume">$0</span></div>
+      <div class="res-item"><span class="res-lbl">− Overhead (NewCo)</span><span class="res-val" style="color:var(--orange)" id="rOverhead">$0</span></div>
+      <div class="res-item"><span class="res-lbl">− Quality Discount</span><span class="res-val" style="color:var(--red)" id="rQualDiscount">$0</span></div>
+      <div class="res-item" style="border-left:1px solid rgba(0,201,177,.3);padding-left:24px"><span class="res-lbl">= Total HDU Earnings</span><span class="res-val teal" id="rTotal">$0</span></div>
       <div class="res-item"><span class="res-lbl">PMPY</span><span class="res-val" id="rPmpy">$0.00</span></div>
     </div>
     <div class="res-actions">
@@ -367,7 +369,7 @@ input[type=text].field:focus, input[type=number].field:focus { border-color:var(
     <table class="btable">
       <thead><tr>
         <th>Product</th><th>Class</th><th>Base Rev</th><th>Volume Rev</th>
-        <th>Mkt Pen</th><th>Quality</th><th>HDU Earns</th><th>NewCo Fee</th><th>Net to HDU</th>
+        <th>Mkt Pen</th><th>Quality</th><th>Overhead</th><th>Qual Discount</th><th>HDU Earns</th>
       </tr></thead>
       <tbody id="breakdownBody"></tbody>
     </table>
@@ -1179,15 +1181,22 @@ function recalc(){
     const vol=p.calcVolume(pop,conn,mp,vr,factor);
     const earns=p.calcHDUEarns(bf,vol,q,oh);
     const newco=p.calcNewco(bf,vol,oh);
+    // Quality discount = what's left after overhead, minus what HDU actually earns
+    const qualDiscount=(bf+vol-newco)-earns;
     const net=earns-newco;
     totBase+=bf; totVol+=vol; totEarns+=earns; totNewco+=newco;
-    rows.push({name:p.name,cls:p.cls,bf,vol,earns,newco,net,q,mp,p,idx:i});
+    rows.push({name:p.name,cls:p.cls,bf,vol,earns,newco,qualDiscount,net,q,mp,p,idx:i});
   });
 
   const pmpy=pop>0?totEarns/pop:0;
+  // Overhead = sum of per-product calcNewco values (correct per-product %)
+  // Quality Discount = (Base+Vol-Overhead) - Total — always balances exactly
+  const totQualDiscount = rows.reduce((a,r)=>a+(r.qualDiscount||0),0);
   document.getElementById('rCount').textContent=count;
   document.getElementById('rBase').textContent=fmt(totBase);
   document.getElementById('rVolume').textContent=fmt(totVol);
+  document.getElementById('rOverhead').textContent=fmt(totNewco);
+  document.getElementById('rQualDiscount').textContent=fmt(totQualDiscount);
   document.getElementById('rTotal').textContent=fmt(totEarns);
   document.getElementById('rPmpy').textContent='$'+pmpy.toFixed(2);
 
@@ -1203,6 +1212,7 @@ function recalc(){
 
 function renderBreakdown(rows,totBase,totVol,totEarns,totNewco){
   const body=document.getElementById('breakdownBody');
+  const totQD=rows.reduce((a,r)=>a+(r.qualDiscount||0),0);
   body.innerHTML=rows.map(r=>`<tr>
     <td>${r.name}</td>
     <td><span class="mtag ${CLASS_CSS[r.cls]||''}">${r.cls}</span></td>
@@ -1210,18 +1220,18 @@ function renderBreakdown(rows,totBase,totVol,totEarns,totNewco){
     <td class="mono">${fmtFull(r.vol)}</td>
     <td class="mono">${Math.round(r.mp*100)}%</td>
     <td class="mono">${Math.round(r.q*100)}%</td>
+    <td class="mono" style="color:var(--orange)">${fmtFull(r.newco)}</td>
+    <td class="mono" style="color:var(--red)">${fmtFull(r.qualDiscount||0)}</td>
     <td class="mono tc">${fmtFull(r.earns)}</td>
-    <td class="mono mc">${fmtFull(r.newco)}</td>
-    <td class="mono gc">${fmtFull(r.net)}</td>
   </tr>`).join('')+`
   <tr class="td-total">
     <td colspan="2"><strong>TOTALS</strong></td>
     <td class="mono"><strong>${fmtFull(totBase)}</strong></td>
     <td class="mono"><strong>${fmtFull(totVol)}</strong></td>
     <td>—</td><td>—</td>
+    <td class="mono" style="color:var(--orange)"><strong>${fmtFull(totNewco)}</strong></td>
+    <td class="mono" style="color:var(--red)"><strong>${fmtFull(totQD)}</strong></td>
     <td class="mono tc"><strong>${fmtFull(totEarns)}</strong></td>
-    <td class="mono mc"><strong>${fmtFull(totNewco)}</strong></td>
-    <td class="mono gc"><strong>${fmtFull(totEarns-totNewco)}</strong></td>
   </tr>`;
 }
 
