@@ -379,7 +379,7 @@ input[type=text].field:focus, input[type=number].field:focus { border-color:var(
 <div class="config-grid" style="margin-bottom:36px">
   <div class="card" style="grid-column:span 2">
     <div class="ilabel">Network Name</div>
-    <input type="text" id="networkName" class="field" value="MyHealth HDU" placeholder="Enter network name">
+    <input type="text" id="networkName" class="field" value="" placeholder="Enter your network name">
   </div>
   <div class="card">
     <div class="ilabel">eMPI Population</div>
@@ -473,6 +473,7 @@ input[type=text].field:focus, input[type=number].field:focus { border-color:var(
     </div>
     <div class="res-actions">
       <button class="btn-reset" onclick="resetAll()">Reset</button>
+      <button class="btn-reset" onclick="clearSavedState()" title="Clears all data saved in this browser — other users are not affected" style="border-color:rgba(255,82,82,.4);color:var(--red)">🗑 Clear My Saved Data</button>
       <button class="btn-primary" onclick="saveSnapshot()">Save Snapshot</button>
       <button class="btn-primary" onclick="exportCSV()">Export CSV</button>
 
@@ -671,7 +672,7 @@ const PAYER_DEFAULTS = [
 const PRODUCTS = [
   {
     name:"Health Plan directed ADTs", customers:"Health plans, ACOs, At-risk providers", cls:"Alerting",
-    unitCost:"Transaction", baseUnit:"ADT", defaultBaseRate:150000, volumeUnit:"Per ADT (encounter)", defaultVolumeRate:1.0, overhead:0.05, distUnits:4, defaultElected:true,
+    unitCost:"Transaction", baseUnit:"ADT", defaultBaseRate:150000, volumeUnit:"Per ADT (encounter)", defaultVolumeRate:1.0, overhead:0.05, distUnits:4, defaultElected:false,
     dataReqs:{ADT:3,ORU:0,VXU:0,MDM:0,'ORM/ORC':0,CCD:0,FHIR:0,Claims:0},
     techReqs:{'Message Intake':3,eMPI:3,'CCD Parsing':0,'Central Data Repository':0,'Data Quality Monitoring':2,'Attribution Through Rosters or Algorithm':3,'Valueset Matching to Code Elements':0,'Data Visualization':0,Analytics:0,'Consent Management':1,'FHIR API':0,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
     calcVolume:(pop,conn,pen,vrate)=>(pop*0.17+pop*0.56+pop*2.4)*conn*pen*vrate,
@@ -680,7 +681,7 @@ const PRODUCTS = [
   },
   {
     name:"FHIR Endpoint Repository queries", customers:"All", cls:"Infrastructure",
-    unitCost:"Transaction", baseUnit:"HDU", defaultBaseRate:250000, volumeUnit:"Transaction", defaultVolumeRate:0.25, overhead:0.21, distUnits:1, defaultElected:true,
+    unitCost:"Transaction", baseUnit:"HDU", defaultBaseRate:250000, volumeUnit:"Transaction", defaultVolumeRate:0.25, overhead:0.21, distUnits:1, defaultElected:false,
     dataReqs:{ADT:3,ORU:0,VXU:0,MDM:0,'ORM/ORC':0,CCD:0,FHIR:3,Claims:0},
     techReqs:{'Message Intake':3,eMPI:3,'CCD Parsing':3,'Central Data Repository':3,'Data Quality Monitoring':3,'Attribution Through Rosters or Algorithm':3,'Valueset Matching to Code Elements':0,'Data Visualization':0,Analytics:0,'Consent Management':0,'FHIR API':3,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
     calcVolume:(pop,conn,pen,vrate)=>pop*3.13*conn*pen*vrate,
@@ -689,7 +690,7 @@ const PRODUCTS = [
   },
   {
     name:"Identity Resolution/Verification/Authentication", customers:"All", cls:"Infrastructure",
-    unitCost:"Unique Persons", baseUnit:"PMPM", defaultBaseRate:50000, volumeUnit:"PMPM", defaultVolumeRate:0.5, overhead:0.7, distUnits:1, defaultElected:true,
+    unitCost:"Unique Persons", baseUnit:"PMPM", defaultBaseRate:50000, volumeUnit:"PMPM", defaultVolumeRate:0.5, overhead:0.7, distUnits:1, defaultElected:false,
     dataReqs:{ADT:0,ORU:0,VXU:0,MDM:0,'ORM/ORC':0,CCD:0,FHIR:0,Claims:0},
     techReqs:{'Message Intake':3,eMPI:3,'CCD Parsing':0,'Central Data Repository':0,'Data Quality Monitoring':0,'Attribution Through Rosters or Algorithm':0,'Valueset Matching to Code Elements':0,'Data Visualization':0,Analytics:0,'Consent Management':0,'FHIR API':0,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
     calcVolume:(pop,conn,pen,vrate)=>pop*conn*pen*vrate,
@@ -762,7 +763,7 @@ const PRODUCTS = [
   },
   {
     name:"VA ADT Routing", customers:"VA", cls:"Alerting",
-    unitCost:"Unique Persons", baseUnit:"HDU", defaultBaseRate:50000, volumeUnit:"PMPY", defaultVolumeRate:1.0, overhead:0.05, distUnits:4, defaultElected:true,
+    unitCost:"Unique Persons", baseUnit:"HDU", defaultBaseRate:50000, volumeUnit:"PMPY", defaultVolumeRate:1.0, overhead:0.05, distUnits:4, defaultElected:false,
     dataReqs:{ADT:3,ORU:0,VXU:0,MDM:0,'ORM/ORC':0,CCD:0,FHIR:0,Claims:0},
     techReqs:{'Message Intake':3,eMPI:3,'CCD Parsing':0,'Central Data Repository':0,'Data Quality Monitoring':2,'Attribution Through Rosters or Algorithm':3,'Valueset Matching to Code Elements':0,'Data Visualization':0,Analytics:0,'Consent Management':1,'FHIR API':0,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
     calcVolume:(pop,conn,pen,vrate)=>pop*0.012*conn*pen*vrate,
@@ -771,7 +772,7 @@ const PRODUCTS = [
   },
   {
     name:"DoD ADT Routing", customers:"DoD", cls:"Alerting",
-    unitCost:"Unique Persons", baseUnit:"HDU", defaultBaseRate:50000, volumeUnit:"PMPY", defaultVolumeRate:1.0, overhead:0.05, distUnits:4, defaultElected:true,
+    unitCost:"Unique Persons", baseUnit:"HDU", defaultBaseRate:50000, volumeUnit:"PMPY", defaultVolumeRate:1.0, overhead:0.05, distUnits:4, defaultElected:false,
     dataReqs:{ADT:3,ORU:0,VXU:0,MDM:0,'ORM/ORC':0,CCD:0,FHIR:0,Claims:0},
     techReqs:{'Message Intake':3,eMPI:3,'CCD Parsing':0,'Central Data Repository':0,'Data Quality Monitoring':2,'Attribution Through Rosters or Algorithm':3,'Valueset Matching to Code Elements':0,'Data Visualization':0,Analytics:0,'Consent Management':1,'FHIR API':0,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
     calcVolume:(pop,conn,pen,vrate)=>pop*0.028*conn*pen*vrate,
@@ -780,7 +781,7 @@ const PRODUCTS = [
   },
   {
     name:"eCase Reporting", customers:"State Public Health, CDC", cls:"Public Health",
-    unitCost:"Unique Persons", baseUnit:"HDU", defaultBaseRate:500000, volumeUnit:"PMPY", defaultVolumeRate:0.5, overhead:0, distUnits:1, defaultElected:true,
+    unitCost:"Unique Persons", baseUnit:"HDU", defaultBaseRate:500000, volumeUnit:"PMPY", defaultVolumeRate:0.5, overhead:0, distUnits:1, defaultElected:false,
     dataReqs:{ADT:3,ORU:3,VXU:0,MDM:0,'ORM/ORC':0,CCD:3,FHIR:3,Claims:0},
     techReqs:{'Message Intake':3,eMPI:3,'CCD Parsing':3,'Central Data Repository':3,'Data Quality Monitoring':2,'Attribution Through Rosters or Algorithm':0,'Valueset Matching to Code Elements':3,'Data Visualization':0,Analytics:0,'Consent Management':0,'FHIR API':1,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
     calcVolume:(pop,conn,pen,vrate)=>pop*conn*pen*vrate,
@@ -789,7 +790,7 @@ const PRODUCTS = [
   },
   {
     name:"Chronic Disease Monitoring to Census Tract", customers:"All, CDC", cls:"Public Health",
-    unitCost:"Unique Persons", baseUnit:"HDU", defaultBaseRate:500000, volumeUnit:"PMPerChronic Disease", defaultVolumeRate:0.1, overhead:0, distUnits:1, defaultElected:true,
+    unitCost:"Unique Persons", baseUnit:"HDU", defaultBaseRate:500000, volumeUnit:"PMPerChronic Disease", defaultVolumeRate:0.1, overhead:0, distUnits:1, defaultElected:false,
     dataReqs:{ADT:3,ORU:3,VXU:0,MDM:0,'ORM/ORC':0,CCD:3,FHIR:3,Claims:0},
     techReqs:{'Message Intake':3,eMPI:3,'CCD Parsing':3,'Central Data Repository':3,'Data Quality Monitoring':2,'Attribution Through Rosters or Algorithm':0,'Valueset Matching to Code Elements':3,'Data Visualization':3,Analytics:3,'Consent Management':0,'FHIR API':1,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
     calcVolume:(pop,conn,pen,vrate)=>pop*conn*pen*vrate*5,
@@ -798,7 +799,7 @@ const PRODUCTS = [
   },
   {
     name:"Nationwide Syndromic Surveillance Network", customers:"CDC, Local Public Health", cls:"Public Health",
-    unitCost:"Unique Persons", baseUnit:"HDU", defaultBaseRate:150000, volumeUnit:"Person", defaultVolumeRate:0.25, overhead:0.21, distUnits:1, defaultElected:true,
+    unitCost:"Unique Persons", baseUnit:"HDU", defaultBaseRate:150000, volumeUnit:"Person", defaultVolumeRate:0.25, overhead:0.21, distUnits:1, defaultElected:false,
     dataReqs:{ADT:3,ORU:3,VXU:0,MDM:0,'ORM/ORC':0,CCD:0,FHIR:0,Claims:0},
     techReqs:{'Message Intake':3,eMPI:3,'CCD Parsing':0,'Central Data Repository':0,'Data Quality Monitoring':0,'Attribution Through Rosters or Algorithm':0,'Valueset Matching to Code Elements':2,'Data Visualization':0,Analytics:0,'Consent Management':0,'FHIR API':0,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
     calcVolume:(pop,conn,pen,vrate)=>pop*conn*pen*vrate,
@@ -807,7 +808,7 @@ const PRODUCTS = [
   },
   {
     name:"Nationwide Drug Reaction/Interaction Alerting", customers:"FDA, Sentinel, VAERS", cls:"Public Health",
-    unitCost:"Unique Persons", baseUnit:"HDU", defaultBaseRate:250000, volumeUnit:"Person", defaultVolumeRate:0.1, overhead:0.21, distUnits:1, defaultElected:true,
+    unitCost:"Unique Persons", baseUnit:"HDU", defaultBaseRate:250000, volumeUnit:"Person", defaultVolumeRate:0.1, overhead:0.21, distUnits:1, defaultElected:false,
     dataReqs:{ADT:3,ORU:0,VXU:3,MDM:0,'ORM/ORC':0,CCD:3,FHIR:3,Claims:0},
     techReqs:{'Message Intake':3,eMPI:0,'CCD Parsing':0,'Central Data Repository':0,'Data Quality Monitoring':0,'Attribution Through Rosters or Algorithm':0,'Valueset Matching to Code Elements':0,'Data Visualization':0,Analytics:0,'Consent Management':0,'FHIR API':0,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
     calcVolume:(pop,conn,pen,vrate)=>pop*conn*pen*vrate,
@@ -816,7 +817,7 @@ const PRODUCTS = [
   },
   {
     name:"Electronic Lab Reporting", customers:"State Public Health, CDC", cls:"Public Health",
-    unitCost:"Unique Persons", baseUnit:"HDU", defaultBaseRate:50000, volumeUnit:"PMPY", defaultVolumeRate:0.1, overhead:0, distUnits:1, defaultElected:true,
+    unitCost:"Unique Persons", baseUnit:"HDU", defaultBaseRate:50000, volumeUnit:"PMPY", defaultVolumeRate:0.1, overhead:0, distUnits:1, defaultElected:false,
     dataReqs:{ADT:3,ORU:3,VXU:0,MDM:0,'ORM/ORC':0,CCD:0,FHIR:0,Claims:0},
     techReqs:{'Message Intake':3,eMPI:3,'CCD Parsing':0,'Central Data Repository':3,'Data Quality Monitoring':2,'Attribution Through Rosters or Algorithm':0,'Valueset Matching to Code Elements':3,'Data Visualization':0,Analytics:0,'Consent Management':0,'FHIR API':2,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
     calcVolume:(pop,conn,pen,vrate)=>pop*conn*pen*vrate,
@@ -843,7 +844,7 @@ const PRODUCTS = [
   },
   {
     name:"Bed Availability Reporting", customers:"Office of Readiness & Response", cls:"Public Health",
-    unitCost:"Unique Persons", baseUnit:"HDU", defaultBaseRate:250000, volumeUnit:"PMPY", defaultVolumeRate:0.1, overhead:0.3, distUnits:1, defaultElected:true,
+    unitCost:"Unique Persons", baseUnit:"HDU", defaultBaseRate:250000, volumeUnit:"PMPY", defaultVolumeRate:0.1, overhead:0.3, distUnits:1, defaultElected:false,
     dataReqs:{ADT:3,ORU:0,VXU:0,MDM:0,'ORM/ORC':0,CCD:0,FHIR:0,Claims:0},
     techReqs:{'Message Intake':3,eMPI:3,'CCD Parsing':0,'Central Data Repository':3,'Data Quality Monitoring':2,'Attribution Through Rosters or Algorithm':0,'Valueset Matching to Code Elements':0,'Data Visualization':0,Analytics:0,'Consent Management':0,'FHIR API':0,'Provider Directory':3,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
     calcVolume:(pop,conn,pen,vrate)=>pop*conn*pen*vrate,
@@ -879,7 +880,7 @@ const PRODUCTS = [
   },
   {
     name:"Health of the Nation Dashboards", customers:"All, AHA", cls:"Public Health",
-    unitCost:"Unique Persons", baseUnit:"HDU", defaultBaseRate:200000, volumeUnit:"PMPY", defaultVolumeRate:1.0, overhead:0, distUnits:1, defaultElected:true,
+    unitCost:"Unique Persons", baseUnit:"HDU", defaultBaseRate:200000, volumeUnit:"PMPY", defaultVolumeRate:1.0, overhead:0, distUnits:1, defaultElected:false,
     dataReqs:{ADT:3,ORU:3,VXU:3,MDM:0,'ORM/ORC':0,CCD:3,FHIR:3,Claims:2},
     techReqs:{'Message Intake':3,eMPI:3,'CCD Parsing':3,'Central Data Repository':3,'Data Quality Monitoring':3,'Attribution Through Rosters or Algorithm':0,'Valueset Matching to Code Elements':3,'Data Visualization':3,Analytics:3,'Consent Management':0,'FHIR API':0,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
     calcVolume:(pop,conn,pen,vrate)=>pop*conn*pen*vrate,
@@ -888,7 +889,7 @@ const PRODUCTS = [
   },
   {
     name:"Quality Measurement: eCQMs", customers:"Health plans, CMS", cls:"Quality",
-    unitCost:"Persons*Measures", baseUnit:"HDU", defaultBaseRate:500000, volumeUnit:"PMPY", defaultVolumeRate:0.2, overhead:0.1, distUnits:1, defaultElected:true,
+    unitCost:"Persons*Measures", baseUnit:"HDU", defaultBaseRate:500000, volumeUnit:"PMPY", defaultVolumeRate:0.2, overhead:0.1, distUnits:1, defaultElected:false,
     factorKey:"measures", factorLabel:"# of Quality Measures", factorDefault:54,
     dataReqs:{ADT:3,ORU:3,VXU:3,MDM:0,'ORM/ORC':0,CCD:3,FHIR:2,Claims:2},
     techReqs:{'Message Intake':3,eMPI:3,'CCD Parsing':3,'Central Data Repository':3,'Data Quality Monitoring':3,'Attribution Through Rosters or Algorithm':3,'Valueset Matching to Code Elements':3,'Data Visualization':3,Analytics:3,'Consent Management':0,'FHIR API':0,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
@@ -898,7 +899,7 @@ const PRODUCTS = [
   },
   {
     name:"Quality Measurement: Care Gaps Alerting", customers:"Health plans, CMS", cls:"Quality",
-    unitCost:"Persons*Measures", baseUnit:"HDU", defaultBaseRate:200000, volumeUnit:"PMPmeasure", defaultVolumeRate:0.1, overhead:0.1, distUnits:1, defaultElected:true,
+    unitCost:"Persons*Measures", baseUnit:"HDU", defaultBaseRate:200000, volumeUnit:"PMPmeasure", defaultVolumeRate:0.1, overhead:0.1, distUnits:1, defaultElected:false,
     factorKey:"measures", factorLabel:"# of Quality Measures", factorDefault:54,
     dataReqs:{ADT:3,ORU:3,VXU:3,MDM:0,'ORM/ORC':0,CCD:3,FHIR:2,Claims:2},
     techReqs:{'Message Intake':3,eMPI:3,'CCD Parsing':3,'Central Data Repository':3,'Data Quality Monitoring':3,'Attribution Through Rosters or Algorithm':3,'Valueset Matching to Code Elements':3,'Data Visualization':1,Analytics:1,'Consent Management':0,'FHIR API':0,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
@@ -908,7 +909,7 @@ const PRODUCTS = [
   },
   {
     name:"SDoH Screening + Referral", customers:"Health plans, provider orgs", cls:"Social Needs",
-    unitCost:"Screening", baseUnit:"HDU", defaultBaseRate:250000, volumeUnit:"Screening", defaultVolumeRate:0.85, overhead:0.05, distUnits:1, defaultElected:true,
+    unitCost:"Screening", baseUnit:"HDU", defaultBaseRate:250000, volumeUnit:"Screening", defaultVolumeRate:0.85, overhead:0.05, distUnits:1, defaultElected:false,
     dataReqs:{ADT:3,ORU:0,VXU:0,MDM:0,'ORM/ORC':0,CCD:0,FHIR:0,Claims:0},
     techReqs:{'Message Intake':3,eMPI:0,'CCD Parsing':0,'Central Data Repository':0,'Data Quality Monitoring':0,'Attribution Through Rosters or Algorithm':0,'Valueset Matching to Code Elements':0,'Data Visualization':0,Analytics:0,'Consent Management':0,'FHIR API':0,'Provider Directory':0,'Provider Portal':0,'Patient Portal':0,'Text-based Screening':3,'Community Resource Directory':3},
     calcVolume:(pop,conn,pen,vrate)=>pop*conn*pen*vrate,
@@ -917,7 +918,7 @@ const PRODUCTS = [
   },
   {
     name:"Medicaid Medical Frailty Determinations", customers:"Medicaid", cls:"Payment Processes",
-    unitCost:"Transaction", baseUnit:"HDU", defaultBaseRate:250001, volumeUnit:"Transaction", defaultVolumeRate:0.25, overhead:0.05, distUnits:1, defaultElected:true,
+    unitCost:"Transaction", baseUnit:"HDU", defaultBaseRate:250001, volumeUnit:"Transaction", defaultVolumeRate:0.25, overhead:0.05, distUnits:1, defaultElected:false,
     dataReqs:{ADT:3,ORU:3,VXU:3,MDM:0,'ORM/ORC':0,CCD:3,FHIR:2,Claims:2},
     techReqs:{'Message Intake':3,eMPI:3,'CCD Parsing':3,'Central Data Repository':3,'Data Quality Monitoring':2,'Attribution Through Rosters or Algorithm':3,'Valueset Matching to Code Elements':3,'Data Visualization':0,Analytics:3,'Consent Management':0,'FHIR API':3,'Provider Directory':0,'Provider Portal':3,'Patient Portal':0,'Text-based Screening':0,'Community Resource Directory':0},
     calcVolume:(pop,conn,pen,vrate)=>pop*conn*pen*vrate,
@@ -1684,8 +1685,8 @@ function exportCSV(){
 // RESET
 // ══════════════════════════════════════════════════════════
 function resetAll(){
-  const pin=S.pin; const log=S.log;
-  S=defaultState(); S.pin=pin; S.log=log;
+  const pin=S.pinHash; const log=S.log;
+  S=defaultState(); S.pinHash=pin; S.log=log;
   document.getElementById('empiPop').value=4000000;
   document.getElementById('svcPop').value=4000000;
   document.getElementById('pctConnected').value=0.8;
@@ -1693,6 +1694,34 @@ function resetAll(){
   document.getElementById('connLabel').textContent='80%';
   document.getElementById('qualLabel').textContent='90%';
   saveState(); renderPayerBar(); renderCapGrids(); renderProducts(); recalc();
+}
+
+function clearSavedState(){
+  try{ localStorage.removeItem('pcdh_state'); }catch(e){}
+  S=defaultState();
+  document.getElementById('networkName').value='';
+  document.getElementById('empiPop').value=4000000;
+  document.getElementById('svcPop').value=4000000;
+  document.getElementById('pctConnected').value=0.8;
+  document.getElementById('defaultQuality').value=0.9;
+  document.getElementById('connLabel').textContent='80%';
+  document.getElementById('qualLabel').textContent='90%';
+  // Reset eligibility dots
+  for(let i=0;i<6;i++){
+    ELIG_STATE[i]=false;
+    const el=document.getElementById('el'+i);
+    if(el){el.classList.remove('yes','no');}
+  }
+  const er=document.getElementById('eligResult');
+  if(er)er.style.display='none';
+  saveState(); renderPayerBar(); renderCapGrids(); renderProducts(); recalc(); renderScenarios();
+  // Flash confirmation
+  const btn=event.target;
+  const orig=btn.textContent;
+  btn.textContent='✓ Cleared!';
+  btn.style.color='var(--green)';
+  btn.style.borderColor='rgba(76,175,80,.4)';
+  setTimeout(()=>{ btn.textContent=orig; btn.style.color=''; btn.style.borderColor=''; },2000);
 }
 
 // ══════════════════════════════════════════════════════════
