@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PCDH 2.0 — HDU Revenue Calculator</title>
+<title>PCDH 2.0 — HDU Revenue Calculator v4</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -202,6 +202,15 @@ input[type=text].field:focus, input[type=number].field:focus { border-color:var(
 /* MODAL */
 .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:500; display:none; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
 .modal-overlay.open { display:flex; }
+/* SCENARIO NAME MODAL */
+.scen-modal { position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:600; display:none; align-items:center; justify-content:center; }
+.scen-modal.open { display:flex; }
+.scen-box { background:var(--navy-mid); border:1px solid rgba(0,201,177,.35); border-radius:14px; padding:28px; width:360px; box-shadow:0 24px 60px rgba(0,0,0,.7); }
+.scen-box h3 { font-family:'DM Serif Display',serif; font-size:18px; margin-bottom:6px; }
+.scen-box p { font-size:12px; color:var(--muted); margin-bottom:18px; }
+.scen-box input { width:100%; background:var(--navy-light); border:1px solid var(--card-border); color:var(--white); font-family:'DM Sans',sans-serif; font-size:14px; padding:10px 14px; border-radius:8px; outline:none; margin-bottom:14px; }
+.scen-box input:focus { border-color:var(--teal); }
+.scen-box-actions { display:flex; gap:8px; justify-content:flex-end; }
 .modal-box { background:var(--navy-mid); border:1px solid rgba(0,201,177,.3); border-radius:16px; padding:32px; max-width:480px; width:90%; box-shadow:0 32px 80px rgba(0,0,0,.7); }
 .modal-title { font-family:'DM Serif Display',serif; font-size:22px; margin-bottom:8px; }
 .modal-sub { color:var(--muted); font-size:13px; margin-bottom:24px; }
@@ -235,11 +244,116 @@ input[type=text].field:focus, input[type=number].field:focus { border-color:var(
 }
 @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
 .product-card { animation:fadeUp .35s both; }
+
+/* ANTITRUST ACKNOWLEDGMENT OVERLAY */
+.ack-overlay { position:fixed; inset:0; background:rgba(0,0,0,.92); z-index:900; display:flex; align-items:center; justify-content:center; padding:20px; }
+.ack-box { background:var(--navy-mid); border:1px solid rgba(244,196,48,.4); border-radius:16px; padding:36px; max-width:560px; width:100%; box-shadow:0 32px 80px rgba(0,0,0,.8); }
+.ack-header { display:flex; align-items:center; gap:12px; margin-bottom:8px; }
+.ack-icon { font-size:28px; }
+.ack-title { font-family:'DM Serif Display',serif; font-size:22px; color:var(--gold); }
+.ack-sub { color:var(--muted); font-size:13px; margin-bottom:24px; line-height:1.6; }
+.ack-checks { margin-bottom:24px; }
+.ack-check-item { display:flex; align-items:flex-start; gap:12px; margin-bottom:14px; cursor:pointer; padding:10px 12px; border-radius:8px; border:1px solid var(--card-border); transition:border-color .2s; }
+.ack-check-item:hover { border-color:rgba(244,196,48,.3); }
+.ack-check-item.checked { border-color:rgba(0,201,177,.4); background:rgba(0,201,177,.04); }
+.ack-checkbox { width:18px; height:18px; border-radius:4px; border:2px solid var(--muted); display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; transition:all .2s; font-size:11px; }
+.ack-check-item.checked .ack-checkbox { background:var(--teal); border-color:var(--teal); color:var(--navy); }
+.ack-check-text { font-size:12px; color:var(--muted); line-height:1.5; }
+.ack-check-item.checked .ack-check-text { color:var(--white); }
+.ack-btn { width:100%; background:var(--card-border); border:none; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:14px; font-weight:600; padding:14px; border-radius:8px; cursor:not-allowed; transition:all .3s; }
+.ack-btn.ready { background:var(--gold); color:var(--navy); cursor:pointer; }
+.ack-btn.ready:hover { background:#ffe068; box-shadow:0 0 20px rgba(244,196,48,.4); }
+.ack-version { font-size:10px; color:var(--muted); text-align:center; margin-top:14px; font-family:'DM Mono',monospace; }
+
+/* ANTITRUST DISCLAIMER BANNER */
+.disclaimer-banner { background:rgba(244,196,48,.07); border:1px solid rgba(244,196,48,.2); border-radius:10px; padding:12px 18px; margin-bottom:28px; display:flex; align-items:flex-start; gap:12px; }
+.disclaimer-icon { font-size:16px; flex-shrink:0; margin-top:1px; }
+.disclaimer-text { font-size:11px; color:var(--muted); line-height:1.6; }
+.disclaimer-text strong { color:var(--gold); font-weight:500; }
+
+/* RATE FIELD PRIVACY NOTE */
+.rate-field-group { position:relative; }
+.rate-privacy-note { display:block; font-size:9px; color:rgba(136,153,187,.6); margin-top:3px; font-style:italic; letter-spacing:.3px; }
+
+/* NEWCO FEE WATERFALL */
+.fee-waterfall { background:rgba(255,255,255,.03); border:1px solid var(--card-border); border-radius:8px; padding:12px 14px; margin-top:10px; }
+.fee-wf-row { display:flex; justify-content:space-between; align-items:center; font-size:11px; padding:3px 0; }
+.fee-wf-label { color:var(--muted); }
+.fee-wf-val { font-family:'DM Mono',monospace; color:var(--white); }
+.fee-wf-total { border-top:1px solid rgba(0,201,177,.3); margin-top:4px; padding-top:6px; font-weight:600; }
+.fee-wf-total .fee-wf-label { color:var(--teal); }
+.fee-wf-total .fee-wf-val { color:var(--teal); }
+.fee-locked { font-size:9px; color:rgba(136,153,187,.5); font-family:'DM Mono',monospace; margin-left:4px; }
+
+/* BASE FEE EXPLANATION */
+.base-fee-note { font-size:10px; color:rgba(136,153,187,.7); line-height:1.5; margin-top:4px; font-style:italic; }
+.base-fee-threshold { font-size:10px; color:var(--gold); margin-top:3px; font-family:'DM Mono',monospace; }
+
+/* SECTION SEPARATOR IN CARD CONTROLS */
+.ctrl-section-label { font-size:9px; letter-spacing:2px; text-transform:uppercase; color:rgba(136,153,187,.5); margin:14px 0 8px; padding-top:10px; border-top:1px dashed rgba(255,255,255,.08); font-family:'DM Mono',monospace; }
+
+/* SCENARIO PANEL */
+.scenario-bar { background:var(--card); border:1px solid var(--card-border); border-radius:var(--radius); padding:18px 20px; margin-bottom:24px; }
+.scenario-row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.scenario-tag { font-size:11px; font-family:'DM Mono',monospace; padding:4px 10px; border-radius:6px; background:rgba(0,201,177,.1); border:1px solid rgba(0,201,177,.3); color:var(--teal); display:flex; align-items:center; gap:6px; }
+.scenario-tag button { background:none; border:none; color:var(--muted); cursor:pointer; font-size:11px; padding:0 2px; line-height:1; }
+.scenario-tag button:hover { color:var(--red); }
+
+/* ELIGIBILITY CHECKER */
+.eligibility-section { margin-bottom:36px; }
+.eligibility-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:8px; margin-top:12px; }
+.elig-item { display:flex; align-items:center; gap:10px; padding:10px 14px; background:var(--card); border:1px solid var(--card-border); border-radius:8px; cursor:pointer; transition:all .2s; font-size:12px; }
+.elig-item:hover { border-color:rgba(0,201,177,.3); }
+.elig-item.yes { border-color:rgba(76,175,80,.4); background:rgba(76,175,80,.06); }
+.elig-item.no { border-color:rgba(255,82,82,.3); background:rgba(255,82,82,.04); }
+.elig-dot { width:10px; height:10px; border-radius:50%; border:2px solid var(--muted); flex-shrink:0; transition:all .2s; }
+.elig-item.yes .elig-dot { background:var(--green); border-color:var(--green); }
+.elig-item.no .elig-dot { background:var(--red); border-color:var(--red); }
+.elig-result { display:flex; align-items:center; gap:10px; margin-top:14px; padding:12px 16px; border-radius:8px; font-size:13px; font-weight:500; }
+.elig-result.eligible { background:rgba(76,175,80,.1); border:1px solid rgba(76,175,80,.3); color:var(--green); }
+.elig-result.gaps { background:rgba(244,196,48,.08); border:1px solid rgba(244,196,48,.3); color:var(--gold); }
+.elig-result.not { background:rgba(255,82,82,.08); border:1px solid rgba(255,82,82,.3); color:var(--red); }
 </style>
 </head>
 <body>
 <div class="glow-orb g1"></div>
 <div class="glow-orb g2"></div>
+
+<!-- ANTITRUST ACKNOWLEDGMENT OVERLAY (Change #1, #2, #3) -->
+<div class="ack-overlay" id="ackOverlay">
+  <div class="ack-box">
+    <div class="ack-header">
+      <span class="ack-icon">⚖️</span>
+      <div class="ack-title">Antitrust Compliance Acknowledgment</div>
+    </div>
+    <div class="ack-sub">This calculator is provided by the National Health Data Utility Network, Inc. for each HDU network's internal financial planning only. Before accessing the calculator, please confirm all of the following:</div>
+    <div class="ack-checks" id="ackChecks">
+      <div class="ack-check-item" onclick="toggleAck(0)">
+        <div class="ack-checkbox" id="ack0">✓</div>
+        <div class="ack-check-text">This tool is for my network's internal financial planning only. I will not use it to share rate information with other HDU network participants.</div>
+      </div>
+      <div class="ack-check-item" onclick="toggleAck(1)">
+        <div class="ack-checkbox" id="ack1">✓</div>
+        <div class="ack-check-text">I will determine all rate inputs independently based on my network's own cost structure and business judgment. I understand that all rate fields are blank and must be completed by my network independently.</div>
+      </div>
+      <div class="ack-check-item" onclick="toggleAck(2)">
+        <div class="ack-checkbox" id="ack2">✓</div>
+        <div class="ack-check-text">I will not discuss or share my rate inputs with personnel from other HDU networks outside of a properly structured and counsel-supervised context.</div>
+      </div>
+      <div class="ack-check-item" onclick="toggleAck(3)">
+        <div class="ack-checkbox" id="ack3">✓</div>
+        <div class="ack-check-text">I understand that NewCo network fees and product base fees are internal infrastructure cost recovery mechanisms, not pricing guidance for what my network should charge its customers.</div>
+      </div>
+      <div class="ack-check-item" onclick="toggleAck(4)">
+        <div class="ack-checkbox" id="ack4">✓</div>
+        <div class="ack-check-text">I have reviewed, or agree to review, the NewCo Antitrust Compliance Policy before using this calculator in any governance context.</div>
+      </div>
+    </div>
+    <button class="ack-btn" id="ackBtn" onclick="completeAck()" disabled>Check all boxes to continue</button>
+    <div class="ack-version">HDU Revenue Calculator v4 &nbsp;|&nbsp; National Health Data Utility Network, Inc. &nbsp;|&nbsp; <span id="ackDate"></span></div>
+  </div>
+</div>
+
 <div class="wrap">
 
 <!-- HEADER -->
@@ -250,6 +364,15 @@ input[type=text].field:focus, input[type=number].field:focus { border-color:var(
   </div>
   <div class="header-sub">Configure your Health Data Utility parameters, elect products, and model your potential revenue from the national data network.</div>
 </header>
+
+<!-- ANTITRUST DISCLAIMER BANNER (Change #4) -->
+<div class="disclaimer-banner">
+  <div class="disclaimer-icon">⚖️</div>
+  <div class="disclaimer-text">
+    <strong>INDEPENDENT RATE SETTING REQUIRED:</strong> This calculator is provided by the National Health Data Utility Network, Inc. solely for each HDU network's internal financial planning. Each network must determine its own rates, fees, and pricing independently. Values entered here do not constitute pricing guidance from NewCo or any other network participant. Rate inputs are confidential — do not share with other HDU network participants. NewCo network fees displayed are internal infrastructure cost recovery mechanisms set by the Finance Committee and are not customer-facing price recommendations.
+  </div>
+</div>
+
 
 <!-- SECTION 1: NETWORK PARAMETERS -->
 <div class="slabel">01 — Network Parameters</div>
@@ -343,7 +466,7 @@ input[type=text].field:focus, input[type=number].field:focus { border-color:var(
       <div class="res-item"><span class="res-lbl">Elected</span><span class="res-val" id="rCount">0</span></div>
       <div class="res-item"><span class="res-lbl">Base Revenue</span><span class="res-val" id="rBase">$0</span></div>
       <div class="res-item"><span class="res-lbl">+ Volume Revenue</span><span class="res-val gold" id="rVolume">$0</span></div>
-      <div class="res-item"><span class="res-lbl">− Overhead (NewCo)</span><span class="res-val" style="color:var(--orange)" id="rOverhead">$0</span></div>
+      <div class="res-item"><span class="res-lbl">− NewCo Network Fee</span><span class="res-val" style="color:var(--orange)" id="rOverhead">$0</span></div>
       <div class="res-item"><span class="res-lbl">− Quality Discount</span><span class="res-val" style="color:var(--red)" id="rQualDiscount">$0</span></div>
       <div class="res-item" style="border-left:1px solid rgba(0,201,177,.3);padding-left:24px"><span class="res-lbl">= Total HDU Earnings</span><span class="res-val teal" id="rTotal">$0</span></div>
       <div class="res-item"><span class="res-lbl">PMPY</span><span class="res-val" id="rPmpy">$0.00</span></div>
@@ -377,13 +500,76 @@ input[type=text].field:focus, input[type=number].field:focus { border-color:var(
 </div>
 
 <div id="dataHeatSection" style="display:none;margin-top:40px">
-  <div class="slabel">08 — Data Requirements Heatmap</div>
+  <div class="slabel">09 — Data Requirements Heatmap</div>
   <div class="heatmap-wrap"><table class="heatmap" id="dataHeatmap"></table></div>
 </div>
 
 <div id="techHeatSection" style="display:none;margin-top:40px">
-  <div class="slabel">09 — Tech Stack Requirements Heatmap</div>
+  <div class="slabel">10 — Tech Stack Requirements Heatmap</div>
   <div class="heatmap-wrap"><table class="heatmap" id="techHeatmap"></table></div>
+</div>
+
+<!-- SECTION 08: SCENARIOS -->
+<div class="slabel">08 — Rate Scenarios</div>
+<div class="scenario-bar" style="margin-bottom:36px">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:10px">
+    <div style="font-size:13px;font-weight:500">Rate Scenarios <span style="font-size:11px;color:var(--muted);font-weight:300">— save and compare up to 3 independent rate scenarios</span></div>
+    <button class="btn-sm" onclick="saveScenario()">+ Save Current as Scenario</button>
+  </div>
+  <div class="scenario-row" id="scenarioRow">
+    <span style="font-size:11px;color:var(--muted);font-style:italic">No scenarios saved yet. Set your rates and click Save.</span>
+  </div>
+  <div id="scenarioCompare" style="display:none;margin-top:14px;overflow-x:auto"></div>
+</div>
+
+<!-- SECTION 11: NETWORK PROFILE & HDU ELIGIBILITY -->
+<div class="slabel">11 — Network Profile &amp; HDU Network Eligibility</div>
+<div class="eligibility-section">
+  <div class="card" style="margin-bottom:14px;padding:20px 24px">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:16px">
+      <div>
+        <div class="ilabel">State</div>
+        <input type="text" id="networkState" class="field" placeholder="e.g. Oklahoma" value="">
+      </div>
+      <div>
+        <div class="ilabel">State Designation Status</div>
+        <select id="designationStatus" style="background:transparent;border:none;border-bottom:1.5px solid rgba(0,201,177,.3);color:var(--white);font-family:'DM Mono',monospace;font-size:14px;width:100%;padding:6px 0;outline:none;">
+          <option value="">Select status…</option>
+          <option value="designated">State Designated</option>
+          <option value="pending">Designation Pending</option>
+          <option value="not">Not Yet Designated</option>
+        </select>
+      </div>
+    </div>
+    <div class="ilabel" style="margin-bottom:10px">HDU Network Eligibility Self-Check — click each item that applies to your network:</div>
+    <div class="eligibility-grid" id="eligGrid">
+      <div class="elig-item" onclick="toggleElig(0)" id="el0">
+        <div class="elig-dot"></div>
+        <span>Our state has designated us as the single HIE for our geography</span>
+      </div>
+      <div class="elig-item" onclick="toggleElig(1)" id="el1">
+        <div class="elig-dot"></div>
+        <span>State officials hold voting board seats with fiduciary duty</span>
+      </div>
+      <div class="elig-item" onclick="toggleElig(2)" id="el2">
+        <div class="elig-dot"></div>
+        <span>Our fee schedules are subject to state review and approval</span>
+      </div>
+      <div class="elig-item" onclick="toggleElig(3)" id="el3">
+        <div class="elig-dot"></div>
+        <span>Our geographic service area is defined in law or our foundational documents</span>
+      </div>
+      <div class="elig-item" onclick="toggleElig(4)" id="el4">
+        <div class="elig-dot"></div>
+        <span>We participate in at least one PCDH use case</span>
+      </div>
+      <div class="elig-item" onclick="toggleElig(5)" id="el5">
+        <div class="elig-dot"></div>
+        <span>We are a current member in good standing of Civitas Networks for Health</span>
+      </div>
+    </div>
+    <div class="elig-result" id="eligResult" style="display:none"></div>
+  </div>
 </div>
 
 <!-- ADMIN PANEL -->
@@ -416,12 +602,36 @@ input[type=text].field:focus, input[type=number].field:focus { border-color:var(
     </div>
     <div style="text-align:right;margin-top:10px">
       <button class="btn-sm" onclick="clearLog()">Clear Log</button>
-      <button class="btn-sm" onclick="exportLog()" style="margin-left:8px">Export Log CSV</button>
+      <button class="btn-sm" onclick="exportLog()" style="margin-left:8px">Export Snapshot Log</button>
+      <button class="btn-sm" onclick="exportRateAuditLog()" style="margin-left:8px;border-color:rgba(244,196,48,.4);color:var(--gold)">⚖️ Export Rate Audit Log</button>
+    </div>
+    <div style="margin-top:20px">
+      <div class="slabel" style="margin-bottom:8px">Rate-Setting Audit Log</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:8px">All rate inputs entered by this network session — for internal compliance documentation.</div>
+      <div style="overflow-x:auto;max-height:200px;overflow-y:auto">
+        <table class="log-table" id="rateAuditTable">
+          <thead><tr><th>Timestamp</th><th>Event</th><th>Product</th><th>Field</th><th>Value</th></tr></thead>
+          <tbody id="rateAuditBody"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>
 
 </div><!-- /wrap -->
+
+<!-- SCENARIO NAME MODAL -->
+<div class="scen-modal" id="scenModal">
+  <div class="scen-box">
+    <h3>Save Scenario</h3>
+    <p>Give this scenario a name so you can compare it later.</p>
+    <input type="text" id="scenNameInput" placeholder="e.g. Conservative, Base Case, Optimistic" maxlength="40">
+    <div class="scen-box-actions">
+      <button class="btn-reset" onclick="closeScenModal()">Cancel</button>
+      <button class="btn-primary" onclick="confirmScenario()">Save</button>
+    </div>
+  </div>
+</div>
 
 <!-- ADMIN MODAL -->
 <div class="modal-overlay" id="adminModal">
@@ -757,7 +967,7 @@ function defaultState() {
   const dataAvail={}; DATA_TYPES.forEach(d=>dataAvail[d]=true);
   const techAvail={}; TECH_COMPONENTS.forEach(t=>techAvail[t]=true);
   const adminData={}; PRODUCTS.forEach((p,i)=>adminData[i]={desc:'',link:'',overhead:p.overhead});
-  return {elected,quality,baseFees,volRates,mktPen,factors,payers,dataAvail,techAvail,adminData,pinHash:'__pending__',log:[]};
+  return {elected,quality,baseFees,volRates,mktPen,factors,payers,dataAvail,techAvail,adminData,pinHash:'__pending__',log:[],customRates:{},rateAuditLog:[],scenarios:[],eligibility:[false,false,false,false,false,false]};
 }
 
 function loadState(){
@@ -1013,11 +1223,9 @@ function renderProducts(){
     const link=adminInfo.link||'';
     const readColor={'green':'var(--green)','yellow':'var(--yellow)','red':'var(--red)'}[readiness];
     const defaultVR=p.defaultVolumeRate;
-    const maxVR=defaultVR*2||0.001;
-
-    // Volume rate slider pct
-    const sliderPct=defaultVR>0?Math.min(100,Math.max(0,(vr/maxVR)*100)):50;
-    const defMarkerPct=50;
+    // Track whether user has entered custom rates (antitrust change #1 — blank by default)
+    const hasCustomBF=S.customRates&&S.customRates[idx]&&S.customRates[idx].bf;
+    const hasCustomVR=S.customRates&&S.customRates[idx]&&S.customRates[idx].vr;
 
     return`
     <div class="product-card${elected?' elected':''}" id="pc-${idx}" style="animation-delay:${fi*.025}s">
@@ -1040,33 +1248,12 @@ function renderProducts(){
       </div>
       <div class="pc-revenue">
         <span class="rev-lbl">Est. HDU Earnings:</span>
-        <span class="rev-val">${fmt(earns)}</span>
-        <span class="rev-base-lbl">base ${fmt(bf)}</span>
+        <span class="rev-val" id="rev-${idx}">${fmt(earns)}</span>
+        <span class="rev-base-lbl">base ${bf>0?fmt(bf):'(no base fee set)'}</span>
       </div>
       <div style="font-size:10px;color:var(--muted);margin-bottom:2px">${p.customers}</div>
       <div class="pc-controls">
-        <div class="ctrl-row">
-          <div class="ctrl-label">
-            <span>Minimum Base Fee</span>
-            <span class="ctrl-val">$<input type="number" id="bf-${idx}" value="${bf}" min="0" step="1000"
-              style="background:transparent;border:none;border-bottom:1px solid rgba(0,201,177,.4);color:var(--teal);font-family:'DM Mono',monospace;font-size:12px;width:90px;outline:none;text-align:right"
-              onchange="setBaseFee(${idx},this.value)" onclick="event.stopPropagation()"></span>
-          </div>
-        </div>
-        ${defaultVR>0?`
-        <div class="ctrl-row">
-          <div class="ctrl-label">
-            <span>Volume Rate (${p.volumeUnit})</span>
-            <span class="ctrl-val" id="vr-lbl-${idx}">$${vr.toFixed(3)}</span>
-          </div>
-          <div class="slider-wrap">
-            <input type="range" class="styled-range" min="0" max="${maxVR}" step="${maxVR/200}"
-              value="${vr}" id="vr-${idx}"
-              onclick="event.stopPropagation()"
-              oninput="setVolRate(${idx},this.value)">
-            <div class="default-marker" style="left:50%"></div>
-          </div>
-        </div>`:``}
+        <div class="ctrl-section-label">⚙️ Network Configuration</div>
         <div class="ctrl-row">
           <div class="ctrl-label">
             <span>Market Penetration (volume only)</span>
@@ -1100,6 +1287,42 @@ function renderProducts(){
             onclick="event.stopPropagation()"
             oninput="setQuality(${idx},this.value)">
         </div>
+        <div class="ctrl-section-label">💰 Your Independent Rate Determination</div>
+        <div style="font-size:10px;color:rgba(244,196,48,.7);margin-bottom:10px;font-style:italic">Enter rates based on your network's own cost structure. These values are confidential.</div>
+        <div class="ctrl-row">
+          <div class="ctrl-label"><span>Minimum Base Fee <span style="color:rgba(136,153,187,.5);font-size:9px">(NewCo payment to your network)</span></span></div>
+          <div class="rate-field-group">
+            <span class="ctrl-val">$<input type="number" id="bf-${idx}" value="${hasCustomBF?bf:''}" min="0" step="1000"
+              placeholder="Enter your base fee"
+              style="background:transparent;border:none;border-bottom:1px solid rgba(0,201,177,.4);color:var(--teal);font-family:'DM Mono',monospace;font-size:12px;width:110px;outline:none;text-align:right"
+              onchange="setBaseFee(${idx},this.value)" onclick="event.stopPropagation()"></span>
+            <span class="rate-privacy-note">🔒 Confidential — do not share with other HDU network participants</span>
+            <div class="base-fee-note">Minimum NewCo payment to your network regardless of volume. Once volume payments exceed this, only volume payments apply.</div>
+          </div>
+        </div>
+        ${defaultVR>0?`
+        <div class="ctrl-row">
+          <div class="ctrl-label">
+            <span>Volume Rate <span style="color:rgba(136,153,187,.5);font-size:9px">(${p.volumeUnit})</span></span>
+            <span class="ctrl-val" id="vr-lbl-${idx}">${hasCustomVR?'$'+vr.toFixed(3):'—'}</span>
+          </div>
+          <div class="rate-field-group">
+            <div style="display:flex;gap:8px;align-items:center">
+              <span style="color:var(--muted);font-size:12px">$</span>
+              <input type="number" id="vr-inp-${idx}" value="${hasCustomVR?vr:''}" min="0" step="0.001" placeholder="Enter your rate"
+                style="background:var(--navy-light);border:1px solid var(--card-border);color:var(--white);font-family:'DM Mono',monospace;font-size:12px;padding:5px 8px;border-radius:6px;width:120px;outline:none"
+                onclick="event.stopPropagation()" oninput="setVolRateInput(${idx},this.value)">
+              <span style="font-size:10px;color:var(--muted)">${p.volumeUnit}</span>
+            </div>
+            <span class="rate-privacy-note">🔒 Confidential — do not share with other HDU network participants</span>
+          </div>
+        </div>`:``}
+        <div class="fee-waterfall">
+          <div style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;font-family:'DM Mono',monospace">Revenue waterfall (NewCo fee set by Finance Committee — not adjustable)</div>
+          <div class="fee-wf-row"><span class="fee-wf-label">Gross revenue</span><span class="fee-wf-val" id="wf-gross-${idx}">${fmt(bf+vol)}</span></div>
+          <div class="fee-wf-row"><span class="fee-wf-label">− NewCo network fee (${Math.round(oh*100)}%) <span class="fee-locked">[fixed]</span></span><span class="fee-wf-val" style="color:var(--orange)">−${fmt(newco)}</span></div>
+          <div class="fee-wf-row fee-wf-total"><span class="fee-wf-label">= Est. net to your network</span><span class="fee-wf-val">${fmt(earns)}</span></div>
+        </div>
       </div>
     </div>`;
   }).join('');
@@ -1110,17 +1333,34 @@ function toggleProduct(idx){
   saveState(); renderProducts(); recalc();
 }
 function setBaseFee(idx,val){
-  S.baseFees[idx]=parseFloat(val)||0;
+  const v=parseFloat(val);
+  if(!isNaN(v)&&v>=0){
+    S.baseFees[idx]=v;
+    if(!S.customRates)S.customRates={};
+    if(!S.customRates[idx])S.customRates[idx]={};
+    S.customRates[idx].bf=true;
+    // Log rate change for audit
+    logRateChange(idx,'Base fee','(previous)',v);
+  }
   updateCardRevenue(idx);
   saveState(); recalc();
 }
-function setVolRate(idx,val){
-  S.volRates[idx]=parseFloat(val);
-  const lbl=document.getElementById('vr-lbl-'+idx);
-  if(lbl)lbl.textContent='$'+parseFloat(val).toFixed(3);
+function setVolRateInput(idx,val){
+  const v=parseFloat(val);
+  if(!isNaN(v)&&v>=0){
+    S.volRates[idx]=v;
+    if(!S.customRates)S.customRates={};
+    if(!S.customRates[idx])S.customRates[idx]={};
+    S.customRates[idx].vr=true;
+    const lbl=document.getElementById('vr-lbl-'+idx);
+    if(lbl)lbl.textContent='$'+v.toFixed(3);
+    // Log rate change for audit
+    logRateChange(idx,'Volume rate','(previous)',v);
+  }
   updateCardRevenue(idx);
   saveState(); recalc();
 }
+function setVolRate(idx,val){ setVolRateInput(idx,val); }
 function setMktPen(idx,val){
   S.mktPen[idx]=parseFloat(val);
   const lbl=document.getElementById('mp-lbl-'+idx);
@@ -1157,10 +1397,13 @@ function updateCardRevenue(idx){
   // Update the rev-val span inside this card
   const card=document.getElementById('pc-'+idx);
   if(!card)return;
-  const revVal=card.querySelector('.rev-val');
+  const revEl=document.getElementById('rev-'+idx);
   const revBase=card.querySelector('.rev-base-lbl');
-  if(revVal)revVal.textContent=fmt(earns);
-  if(revBase)revBase.textContent='base '+fmt(bf);
+  if(revEl)revEl.textContent=fmt(earns);
+  if(revBase)revBase.textContent='base '+(bf>0?fmt(bf):'(no base fee set)');
+  // Update waterfall
+  const wfGross=document.getElementById('wf-gross-'+idx);
+  if(wfGross)wfGross.textContent=fmt(bf+vol);
 }
 
 // ══════════════════════════════════════════════════════════
@@ -1331,12 +1574,13 @@ function renderAdminPanel(){
         <input type="text" id="alink-${i}" value="${ad.link||''}" placeholder="https://..." onchange="saveAdminField(${i})">
       </div>
       <div class="admin-field">
-        <label>Overhead % (currently ${((ad.overhead??p.overhead)*100).toFixed(0)}%)</label>
+        <label>NewCo Network Fee % — set by Finance Committee based on cost allocation methodology (currently ${((ad.overhead??p.overhead)*100).toFixed(0)}%)</label>
         <input type="number" id="aoh-${i}" value="${((ad.overhead??p.overhead)*100).toFixed(1)}" min="0" max="100" step="0.5" onchange="saveAdminField(${i})">
       </div>
     </div>`;
   }).join('');
   renderLogTable();
+  renderRateAuditTable();
   document.getElementById('logCount').textContent=S.log.length+' snapshots saved';
 }
 
@@ -1389,6 +1633,19 @@ function saveSnapshot(){
 }
 
 function clearLog(){ if(confirm('Clear all log entries?')){ S.log=[]; saveState(); renderLogTable(); document.getElementById('logCount').textContent='0 snapshots saved'; } }
+function renderRateAuditTable(){
+  const body=document.getElementById('rateAuditBody');
+  if(!body)return;
+  const log=S.rateAuditLog||[];
+  if(!log.length){body.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:12px">No rate changes logged yet</td></tr>';return;}
+  body.innerHTML=[...log].reverse().slice(0,50).map(e=>`<tr>
+    <td>${e.ts}</td>
+    <td style="color:var(--gold)">${e.event}</td>
+    <td>${e.product||'—'}</td>
+    <td>${e.field||'—'}</td>
+    <td style="color:var(--teal);font-family:'DM Mono',monospace">${e.newVal||e.detail||'—'}</td>
+  </tr>`).join('');
+}
 function exportLog(){
   let csv='Timestamp,Network,Products Elected,Base Rev,Total Rev,PMPY,Notes\n';
   S.log.forEach(e=>{ csv+=`"${e.ts}","${e.network}","${e.count}","${e.base}","${e.total}","${e.pmpy}","${e.notes||''}"\n`; });
@@ -1403,8 +1660,13 @@ function exportCSV(){
   const pop=parseFloat(document.getElementById('empiPop').value)||4000000;
   const conn=parseFloat(document.getElementById('pctConnected').value)||0.8;
   const name=document.getElementById('networkName').value||'HDU';
-  let csv=`PCDH 2.0 Revenue Calculator — ${name}\nPopulation,${pop}\n% Connected,${(conn*100).toFixed(0)}%\n\n`;
-  csv+='Product,Class,Customers,Base Fee,Volume Rev,Mkt Pen,Quality,HDU Earns,NewCo Fee,Net to HDU\n';
+  const now=new Date().toLocaleString();
+  let csv=`HDU Network Revenue Model — CONFIDENTIAL\n`;
+  csv+=`Network:,"${name}"\n`;
+  csv+=`Export date:,"${now}"\n`;
+  csv+=`Calculator version:,v4\n`;
+  csv+=`DISCLAIMER:,"Rates in this model are ${name}'s independently determined estimates. They do not constitute pricing guidance from NewCo or any other network participant. Do not share with other HDU network participants."\n\n`;
+  csv+='Product,Class,Customers,Base Fee,Volume Rev,Mkt Pen,Quality,HDU Earns,NewCo Network Fee,Net to HDU\n';
   PRODUCTS.forEach((p,i)=>{
     if(!S.elected[i])return;
     const q=S.quality[i],bf=S.baseFees[i],vr=S.volRates[i],mp=S.mktPen[i],factor=S.factors[i];
@@ -1449,6 +1711,202 @@ document.getElementById('empiPop').addEventListener('input',()=>{ renderPayerBar
 document.getElementById('svcPop').addEventListener('input',()=>{ renderProducts(); recalc(); });
 document.getElementById('adminModal').addEventListener('click',function(e){ if(e.target===this) closeAdminModal(); });
 
+
+// ══════════════════════════════════════════════════════════
+// ANTITRUST ACKNOWLEDGMENT (Change #1, #2, #3)
+// ══════════════════════════════════════════════════════════
+const ACK_CHECKS=[false,false,false,false,false];
+function toggleAck(i){
+  ACK_CHECKS[i]=!ACK_CHECKS[i];
+  const item=document.querySelector('.ack-check-item:nth-child('+(i+1)+')');
+  if(item){
+    item.classList.toggle('checked',ACK_CHECKS[i]);
+    const box=document.getElementById('ack'+i);
+    if(box)box.textContent=ACK_CHECKS[i]?'✓':'';
+  }
+  const allChecked=ACK_CHECKS.every(Boolean);
+  const btn=document.getElementById('ackBtn');
+  if(btn){
+    btn.disabled=!allChecked;
+    btn.className='ack-btn'+(allChecked?' ready':'');
+    btn.textContent=allChecked?'I Understand and Agree — Enter Calculator':'Check all boxes to continue';
+  }
+}
+function completeAck(){
+  if(!ACK_CHECKS.every(Boolean))return;
+  document.getElementById('ackOverlay').style.display='none';
+  // Log acknowledgment to audit log
+  if(!S.rateAuditLog)S.rateAuditLog=[];
+  S.rateAuditLog.push({ts:new Date().toLocaleString(),event:'ACKNOWLEDGMENT_COMPLETED',detail:'All 5 compliance checkboxes confirmed'});
+  saveState();
+}
+// Init ack overlay
+document.getElementById('ackDate').textContent=new Date().toLocaleDateString();
+
+// ══════════════════════════════════════════════════════════
+// AUDIT LOG FOR RATE CHANGES (Change #13)
+// ══════════════════════════════════════════════════════════
+function logRateChange(idx,field,oldVal,newVal){
+  if(!S.rateAuditLog)S.rateAuditLog=[];
+  S.rateAuditLog.push({
+    ts:new Date().toLocaleString(),
+    event:'RATE_CHANGE',
+    product:PRODUCTS[idx]?.name||'Unknown',
+    field,oldVal,newVal:newVal.toString()
+  });
+  saveState();
+}
+function exportRateAuditLog(){
+  const log=S.rateAuditLog||[];
+  const name=document.getElementById('networkName').value||'HDU';
+  let csv=`HDU Rate-Setting Audit Log — ${name}\n`;
+  csv+=`Export date:,${new Date().toLocaleString()}\n\n`;
+  csv+='Timestamp,Event,Product,Field,Old Value,New Value\n';
+  log.forEach(e=>{
+    csv+=`"${e.ts}","${e.event}","${e.product||''}","${e.field||''}","${e.oldVal||''}","${e.newVal||''}"\n`;
+  });
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`HDU_Rate_Audit_Log_${name.replace(/\s+/g,'_')}.csv`;a.click();
+}
+
+// ══════════════════════════════════════════════════════════
+// ELIGIBILITY CHECKER (Change #12)
+// ══════════════════════════════════════════════════════════
+const ELIG_STATE=[false,false,false,false,false,false];
+function toggleElig(i){
+  ELIG_STATE[i]=!ELIG_STATE[i];
+  const el=document.getElementById('el'+i);
+  if(el){
+    el.classList.toggle('yes',ELIG_STATE[i]);
+    el.classList.toggle('no',!ELIG_STATE[i]&&ELIG_STATE.some(Boolean));
+  }
+  updateEligResult();
+}
+function updateEligResult(){
+  const yes=ELIG_STATE.filter(Boolean).length;
+  const res=document.getElementById('eligResult');
+  if(!res)return;
+  if(yes===0){res.style.display='none';return;}
+  res.style.display='flex';
+  if(yes===6){
+    res.className='elig-result eligible';
+    res.textContent='🟢 Your network appears well-positioned to join the national partnership of HDUs. Contact the HDU Network to begin the membership process.';
+  } else if(yes>=4){
+    res.className='elig-result gaps';
+    res.textContent=`🟡 ${6-yes} potential issue(s) identified before joining the national partnership of HDUs. Review the State HIE Framework guide — gaps in state designation, board representation, or fee oversight may need to be addressed.`;
+  } else {
+    res.className='elig-result not';
+    res.textContent=`🔴 ${6-yes} significant issue(s) identified. Joining the national partnership of HDUs will likely require legislative or governance changes to your state framework. The State HIE Framework Best Practices guide outlines the specific steps needed.`;
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// SCENARIO COMPARISON (Change #11)
+// ══════════════════════════════════════════════════════════
+// Pending scenario data while modal is open
+let _pendingScenario=null;
+
+function saveScenario(){
+  if(!S.scenarios)S.scenarios=[];
+  if(S.scenarios.length>=3){
+    // Show inline alert instead of browser alert
+    const row=document.getElementById('scenarioRow');
+    const orig=row.innerHTML;
+    row.innerHTML='<span style="color:var(--red);font-size:12px;font-weight:500">Maximum 3 scenarios saved. Click ✕ on one to delete it before saving a new one.</span>';
+    setTimeout(()=>{row.innerHTML=orig;},3500);
+    return;
+  }
+  // Compute current totals to store in scenario
+  const pop=parseFloat(document.getElementById('empiPop').value)||4000000;
+  const conn=parseFloat(document.getElementById('pctConnected').value)||0.8;
+  let totBase=0,totEarns=0,count=0;
+  PRODUCTS.forEach((p,i)=>{
+    if(!S.elected[i])return; count++;
+    const q=S.quality[i],bf=S.baseFees[i],vr=S.volRates[i],mp=S.mktPen[i],factor=S.factors[i];
+    const oh=S.adminData[i]?.overhead??p.overhead;
+    const vol=p.calcVolume(pop,conn,mp,vr,factor);
+    const earns=p.calcHDUEarns(bf,vol,q,oh);
+    totBase+=bf; totEarns+=earns;
+  });
+  // Store pending and open modal
+  _pendingScenario={
+    ts:new Date().toLocaleString(), count,
+    base:totBase, earns:totEarns,
+    pmpy:pop>0?totEarns/pop:0,
+    elected:{...S.elected}, baseFees:{...S.baseFees},
+    volRates:{...S.volRates}, mktPen:{...S.mktPen}
+  };
+  const inp=document.getElementById('scenNameInput');
+  inp.value='Scenario '+(S.scenarios.length+1);
+  document.getElementById('scenModal').classList.add('open');
+  setTimeout(()=>{inp.focus();inp.select();},80);
+}
+
+function confirmScenario(){
+  const name=document.getElementById('scenNameInput').value.trim();
+  if(!name)return;
+  if(!_pendingScenario)return;
+  _pendingScenario.name=name;
+  S.scenarios.push(_pendingScenario);
+  _pendingScenario=null;
+  closeScenModal();
+  saveState(); renderScenarios();
+}
+
+function closeScenModal(){
+  document.getElementById('scenModal').classList.remove('open');
+  _pendingScenario=null;
+}
+
+// Allow Enter key to confirm
+document.getElementById('scenNameInput').addEventListener('keydown',function(e){
+  if(e.key==='Enter') confirmScenario();
+  if(e.key==='Escape') closeScenModal();
+});
+// Click outside modal to close
+document.getElementById('scenModal').addEventListener('click',function(e){
+  if(e.target===this) closeScenModal();
+});
+function deleteScenario(i){
+  S.scenarios.splice(i,1); saveState(); renderScenarios();
+}
+function renderScenarios(){
+  const row=document.getElementById('scenarioRow');
+  const cmp=document.getElementById('scenarioCompare');
+  if(!S.scenarios||!S.scenarios.length){
+    row.innerHTML='<span style="font-size:11px;color:var(--muted);font-style:italic">No scenarios saved yet. Set your rates and click Save.</span>';
+    cmp.style.display='none'; return;
+  }
+  row.innerHTML=S.scenarios.map((sc,i)=>`
+    <div class="scenario-tag">${sc.name} — ${fmt(sc.earns)} net
+      <button onclick="deleteScenario(${i})" title="Delete">✕</button>
+    </div>`).join('');
+  cmp.style.display='block';
+  let tbl='<table style="border-collapse:collapse;font-size:12px;min-width:500px">';
+  tbl+='<tr><th style="text-align:left;padding:8px 12px;color:var(--muted);border-bottom:1px solid var(--card-border)">Metric</th>';
+  S.scenarios.forEach(sc=>{ tbl+=`<th style="padding:8px 12px;color:var(--teal);border-bottom:1px solid var(--card-border)">${sc.name}</th>`; });
+  tbl+='</tr>';
+  const metrics=[
+    ['Products elected',sc=>sc.count],
+    ['Base fees',sc=>fmt(sc.base)],
+    ['Total net to HDU',sc=>fmt(sc.earns)],
+    ['PMPY',sc=>'$'+sc.pmpy.toFixed(2)],
+    ['Saved',sc=>sc.ts],
+  ];
+  metrics.forEach(([label,fn])=>{
+    tbl+=`<tr><td style="padding:7px 12px;color:var(--muted);border-bottom:1px solid rgba(255,255,255,.04)">${label}</td>`;
+    S.scenarios.forEach(sc=>{ tbl+=`<td style="padding:7px 12px;font-family:'DM Mono',monospace;text-align:center;border-bottom:1px solid rgba(255,255,255,.04)">${fn(sc)}</td>`; });
+    tbl+='</tr>';
+  });
+  tbl+='</table>';
+  cmp.innerHTML=tbl;
+}
+
+// ══════════════════════════════════════════════════════════
+// AUDIT LOG EXPORT BUTTON in admin (Change #13)
+// ══════════════════════════════════════════════════════════
+
 // ══════════════════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════════════════
@@ -1456,6 +1914,7 @@ renderPayerBar();
 renderCapGrids();
 renderProducts();
 recalc();
+renderScenarios();
 </script>
 </body>
 </html>
